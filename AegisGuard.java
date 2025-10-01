@@ -1,4 +1,4 @@
-// src/main/java/com/AegisGuard/AegisGuard.java
+main: com.aegisguard.AegisGuard
 package com.aegisguard;
 
 import com.aegisguard.config.AGConfig;
