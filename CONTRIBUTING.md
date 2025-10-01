@@ -99,7 +99,3 @@ This ensures AegisGuard remains open-source, community-friendly, and available f
 
 
 ---
-
-✅ That’s the complete and polished `CONTRIBUTING.md`. Everything is inside Markdown formatting now: code blocks, checklists, and headings will render cleanly on GitHub.  
-
-Do you want me to now draft a **README.md** that links directly to this file so new contributors see it right away?
