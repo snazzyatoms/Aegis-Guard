@@ -1,0 +1,10 @@
+limits:
+  min_radius: 1
+  max_radius: 32
+  max_area: 16000
+  preview_seconds: 10
+
+effects:
+  on_claim:
+    lightning_visual: true
+    particle: TOTEM
