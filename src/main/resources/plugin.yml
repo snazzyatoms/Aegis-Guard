@@ -1,0 +1,12 @@
+name: AegisGuard
+main: com.aegisguard.AegisGuard
+version: 1.0
+api-version: "1.20"
+commands:
+  aegis:
+    description: Main AegisGuard command
+    usage: /aegis <wand|menu|claim|unclaim>
+permissions:
+  aegis.use:
+    description: Use AegisGuard commands
+    default: true
