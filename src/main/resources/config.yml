@@ -25,10 +25,61 @@ limits:
 
 effects:
   on_claim:
-    lightning_visual: true  # Strike lightning effect when a claim is made
-    particle: TOTEM         # Particle effect when claiming (TOTEM, FLAME, HEART, etc.)
+    lightning_visual: true   # Strike lightning effect when a claim is made
+    particle: TOTEM          # Particle effect when claiming (TOTEM, FLAME, HEART, etc.)
 
 protections:
-  no_mobs_in_claims: true      # Prevent hostile mobs from spawning inside claims
-  pvp_protection: true         # Disable PvP inside claims (trusted players exempt)
-  container_protection: true   # Block non-trusted players from opening chests/furnaces
+  no_mobs_in_claims: true       # Prevent hostile mobs from spawning inside claims
+  pvp_protection: true          # Disable PvP inside claims (trusted players exempt)
+  container_protection: true    # Block non-trusted players from opening chests/furnaces
+
+# ======================================
+# Sound System
+# ======================================
+# Control all sounds for menus and claims
+# Server owners & admins can:
+#   - Disable globally
+#   - Allow per-player toggles
+#   - Customize sound, volume, pitch
+# ======================================
+
+sounds:
+  enabled: true        # Master toggle for ALL sounds
+  per_player: true     # Allow players to toggle sounds individually
+
+  menus:
+    enabled: true
+    open:
+      sound: ENTITY_ILLUSIONER_CAST_SPELL
+      volume: 1.0
+      pitch: 1.0
+    flip:
+      sound: ITEM_BOOK_PAGE_TURN
+      volume: 1.0
+      pitch: 1.0
+    close:
+      sound: ITEM_BOOK_PUT
+      volume: 1.0
+      pitch: 1.0
+
+  claim:
+    enabled: true
+    main:
+      sound: ENTITY_EVOKER_PREPARE_SUMMON
+      volume: 1.0
+      pitch: 1.0
+    extra:
+      sound: ENTITY_LIGHTNING_BOLT_THUNDER
+      volume: 1.0
+      pitch: 0.8
+
+  unclaim:
+    enabled: true
+    main:
+      sound: ENTITY_WITHER_SPAWN
+      volume: 0.7
+      pitch: 0.8
+    extra:
+      sound: ENTITY_ZOMBIE_VILLAGER_CURE
+      volume: 1.0
+      pitch: 1.0
