@@ -5,6 +5,7 @@ import com.aegisguard.data.Plot;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -213,6 +214,7 @@ public class TrustedGUI {
                     if (target.isOnline()) {
                         plugin.msg().send(target.getPlayer(), "trusted_added_target", "PLAYER", player.getName());
                     }
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
                     open(player);
                 }
             }
@@ -239,11 +241,13 @@ public class TrustedGUI {
                     if (target != null && plot.isTrusted(target.getUniqueId())) {
                         plot.removeTrusted(target.getUniqueId());
                         plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
+                        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1f, 1f);
                         openRemoveMenu(player, plot);
                     }
                 }
             } else if (type == Material.RED_WOOL) {
                 // Cancel → back to remove menu
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
                 openRemoveMenu(player, plot);
             }
         }
