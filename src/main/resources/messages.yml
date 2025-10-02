@@ -180,10 +180,6 @@ farm_toggle_lore:
 back_lore:
   - "&7Return to the Guardian Codex"
 
-# Admin
-admin_bypass_limit: "&e⚠ You bypassed the claim limit as an admin."
-admin_removed_banned: "&c✔ Removed plots of banned player {PLAYER}."
-
 # Help
 help_header: "&b⚔ &nGuardian Codex Help&r"
 help_lines:
@@ -201,3 +197,7 @@ info_message: "&6📖 The Guardian Codex explains everything about land protecti
 
 # Effects
 claim_effect: "&b⚡ Zeus blesses your land! A claim has been created."
+
+# Admin (admin-only messages)
+admin_bypass_limit: "&e⚠ [Admin] You bypassed the claim limit."
+admin_removed_banned: "&c✔ [Admin] Removed plots of banned player {PLAYER}."
