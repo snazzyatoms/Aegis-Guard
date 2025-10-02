@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -35,35 +36,30 @@ public class GUIManager {
         String title = plugin.msg().get("menu_title");
         Inventory inv = Bukkit.createInventory(null, 27, title);
 
-        // Claim Land
         inv.setItem(11, createItem(
                 Material.LIGHTNING_ROD,
                 plugin.msg().get("button_claim_land"),
                 plugin.msg().getList("claim_land_lore")
         ));
 
-        // Trusted Players
         inv.setItem(13, createItem(
                 Material.PLAYER_HEAD,
                 plugin.msg().get("button_trusted_players"),
                 plugin.msg().getList("trusted_players_lore")
         ));
 
-        // Settings
         inv.setItem(15, createItem(
                 Material.REDSTONE_COMPARATOR,
                 plugin.msg().get("button_settings"),
                 plugin.msg().getList("settings_lore")
         ));
 
-        // Info & Guidebook
         inv.setItem(22, createItem(
                 Material.WRITABLE_BOOK,
                 plugin.msg().get("button_info"),
                 plugin.msg().getList("info_lore")
         ));
 
-        // Exit
         inv.setItem(26, createItem(
                 Material.BARRIER,
                 plugin.msg().get("button_exit"),
@@ -80,7 +76,7 @@ public class GUIManager {
     public void openSettings(Player player) {
         Inventory inv = Bukkit.createInventory(null, 54, plugin.msg().get("settings_menu_title"));
 
-        // --- Sounds toggle ---
+        // --- Sounds ---
         boolean globalEnabled = plugin.getConfig().getBoolean("sounds.global_enabled", true);
         if (!globalEnabled) {
             inv.setItem(10, createItem(
@@ -137,7 +133,7 @@ public class GUIManager {
                 plugin.msg().getList("entity_toggle_lore")
         ));
 
-        // --- Farm/Trample Protection ---
+        // --- Farm Protection ---
         boolean farm = plugin.protection().isFarmProtectionEnabled(player);
         inv.setItem(16, createItem(
                 farm ? Material.WHEAT : Material.WHEAT_SEEDS,
@@ -145,14 +141,13 @@ public class GUIManager {
                 plugin.msg().getList("farm_toggle_lore")
         ));
 
-        // Back
+        // Navigation
         inv.setItem(48, createItem(
                 Material.ARROW,
                 plugin.msg().get("button_back"),
                 plugin.msg().getList("back_lore")
         ));
 
-        // Exit
         inv.setItem(49, createItem(
                 Material.BARRIER,
                 plugin.msg().get("button_exit"),
@@ -168,8 +163,7 @@ public class GUIManager {
      * ----------------------------- */
     public void handleClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player player)) return;
-        if (e.getClickedInventory() == null) return;
-        if (e.getCurrentItem() == null) return;
+        if (e.getClickedInventory() == null || e.getCurrentItem() == null) return;
 
         String title = e.getView().getTitle();
         Material type = e.getCurrentItem().getType();
@@ -205,7 +199,7 @@ public class GUIManager {
 
             boolean globalEnabled = plugin.getConfig().getBoolean("sounds.global_enabled", true);
 
-            // Ignore clicks if sound toggle globally disabled
+            // Block sound button if globally disabled
             if (!globalEnabled && type == Material.BARRIER) return;
 
             switch (type) {
@@ -257,7 +251,7 @@ public class GUIManager {
         if (meta != null) {
             meta.setDisplayName(name);
             if (lore != null) meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); // ensure no attributes shown
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); // no attributes shown
             item.setItemMeta(meta);
         }
         return item;
