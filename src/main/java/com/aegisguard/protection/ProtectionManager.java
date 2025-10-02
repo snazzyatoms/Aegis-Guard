@@ -3,27 +3,27 @@ package com.aegisguard.protection;
 import com.aegisguard.AegisGuard;
 import com.aegisguard.data.PlotStore;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.Location;
-import org.bukkit.World;
 
-import java.util.UUID;
+import java.util.*;
 
 /**
  * ProtectionManager
  * - Enforces protections inside plots
- * - Prevents griefing, mob targeting, PvP
+ * - Supports toggles from GUI
  */
 public class ProtectionManager implements Listener {
 
@@ -34,115 +34,218 @@ public class ProtectionManager implements Listener {
     }
 
     /* -----------------------------
-     * Block Break
+     * Event Handlers
      * ----------------------------- */
+
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         Player p = e.getPlayer();
         PlotStore.Plot plot = plugin.store().getPlotAt(e.getBlock().getLocation());
+        if (plot == null) return;
 
-        if (plot == null) return; // not in a claim
         if (!canBuild(p, plot)) {
             e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "❌ You cannot break blocks here!");
+            p.sendMessage(plugin.msg().get("cannot_break"));
         }
     }
 
-    /* -----------------------------
-     * Block Place
-     * ----------------------------- */
     @EventHandler
     public void onPlace(BlockPlaceEvent e) {
         Player p = e.getPlayer();
         PlotStore.Plot plot = plugin.store().getPlotAt(e.getBlock().getLocation());
-
         if (plot == null) return;
+
         if (!canBuild(p, plot)) {
             e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "❌ You cannot place blocks here!");
+            p.sendMessage(plugin.msg().get("cannot_place"));
         }
     }
 
-    /* -----------------------------
-     * Player Interact (chests, doors, etc.)
-     * ----------------------------- */
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
         if (e.getClickedBlock() == null) return;
         Player p = e.getPlayer();
-        PlotStore.Plot plot = plugin.store().getPlotAt(e.getClickedBlock().getLocation());
-
+        Block block = e.getClickedBlock();
+        PlotStore.Plot plot = plugin.store().getPlotAt(block.getLocation());
         if (plot == null) return;
-        if (!canBuild(p, plot)) {
-            e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "❌ You cannot interact here!");
+
+        // Container protection
+        if (!canBuild(p, plot) && isContainer(block.getType())) {
+            if (plot.getFlag("containers", true)) {
+                e.setCancelled(true);
+                p.sendMessage(plugin.msg().get("cannot_interact"));
+            }
         }
     }
 
-    /* -----------------------------
-     * PvP Protection
-     * ----------------------------- */
     @EventHandler
     public void onPvP(EntityDamageByEntityEvent e) {
         if (!(e.getEntity() instanceof Player victim)) return;
         if (!(e.getDamager() instanceof Player attacker)) return;
 
         PlotStore.Plot plot = plugin.store().getPlotAt(victim.getLocation());
-        if (plot == null) return; // outside claim = normal PvP
+        if (plot == null) return;
 
-        UUID owner = plot.getOwner();
-
-        // prevent trusted from attacking owner or each other
-        if (attacker.getUniqueId().equals(owner) || victim.getUniqueId().equals(owner)) {
+        if (plot.getFlag("pvp", true)) {
             e.setCancelled(true);
-            return;
-        }
-        if (plot.getTrusted().contains(attacker.getUniqueId()) && plot.getTrusted().contains(victim.getUniqueId())) {
-            e.setCancelled(true);
+            attacker.sendMessage(plugin.msg().get("cannot_attack"));
         }
     }
 
-    /* -----------------------------
-     * Mob Target Protection
-     * ----------------------------- */
+    @EventHandler
+    public void onPetDamage(EntityDamageByEntityEvent e) {
+        if (!(e.getDamager() instanceof Player attacker)) return;
+        if (!(e.getEntity() instanceof Tameable pet)) return;
+        if (pet.getOwner() == null) return;
+
+        PlotStore.Plot plot = plugin.store().getPlotAt(pet.getLocation());
+        if (plot == null) return;
+
+        if (plot.getFlag("pets", true)) {
+            e.setCancelled(true);
+            attacker.sendMessage(ChatColor.RED + "❌ You cannot hurt pets here!");
+        }
+    }
+
+    @EventHandler
+    public void onEntityInteract(PlayerInteractEntityEvent e) {
+        if (!(e.getRightClicked() instanceof ArmorStand stand)) return;
+        Player p = e.getPlayer();
+        PlotStore.Plot plot = plugin.store().getPlotAt(stand.getLocation());
+        if (plot == null) return;
+
+        if (plot.getFlag("entities", true) && !canBuild(p, plot)) {
+            e.setCancelled(true);
+            p.sendMessage(ChatColor.RED + "❌ You cannot modify entities here!");
+        }
+    }
+
     @EventHandler
     public void onTarget(EntityTargetEvent e) {
         if (!(e.getTarget() instanceof Player p)) return;
         PlotStore.Plot plot = plugin.store().getPlotAt(p.getLocation());
         if (plot == null) return;
 
-        if (e.getEntity() instanceof LivingEntity mob) {
-            if (mob.getType() == EntityType.ZOMBIE ||
-                mob.getType() == EntityType.SKELETON ||
-                mob.getType() == EntityType.CREEPER ||
-                mob.getType() == EntityType.SPIDER ||
-                mob.getType() == EntityType.ENDERMAN) {
-                e.setCancelled(true); // hostile mobs ignore players inside claims
-            }
-        }
-    }
-
-    /* -----------------------------
-     * Optional: Cancel hostile spawns in claims
-     * ----------------------------- */
-    @EventHandler
-    public void onSpawn(EntitySpawnEvent e) {
-        if (!(e.getEntity() instanceof LivingEntity)) return;
-        if (!(e.getEntity() instanceof Player)) {
-            Location loc = e.getLocation();
-            PlotStore.Plot plot = plugin.store().getPlotAt(loc);
-            if (plot != null && plugin.cfg().getBoolean("protections.no_mobs_in_claims", true)) {
+        if (plot.getFlag("mobs", true)) {
+            if (e.getEntity() instanceof Monster) {
                 e.setCancelled(true);
             }
         }
     }
 
+    @EventHandler
+    public void onSpawn(EntitySpawnEvent e) {
+        if (!(e.getEntity() instanceof Monster)) return;
+        PlotStore.Plot plot = plugin.store().getPlotAt(e.getLocation());
+        if (plot == null) return;
+
+        if (plot.getFlag("mobs", true)) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onFarmTrample(PlayerInteractEvent e) {
+        if (e.getAction() != Action.PHYSICAL) return;
+        if (e.getClickedBlock() == null || e.getClickedBlock().getType() != Material.FARMLAND) return;
+
+        Player p = e.getPlayer();
+        PlotStore.Plot plot = plugin.store().getPlotAt(e.getClickedBlock().getLocation());
+        if (plot == null) return;
+
+        if (plot.getFlag("farm", true)) {
+            e.setCancelled(true);
+            p.sendMessage(ChatColor.RED + "❌ Crops are protected here!");
+        }
+    }
+
     /* -----------------------------
-     * Helper: Can Player Build?
+     * Toggle Accessors for GUI
      * ----------------------------- */
+    public boolean isPvPEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("pvp", true);
+    }
+
+    public void togglePvP(Player player) {
+        toggleFlag(player, "pvp");
+    }
+
+    public boolean isContainersEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("containers", true);
+    }
+
+    public void toggleContainers(Player player) {
+        toggleFlag(player, "containers");
+    }
+
+    public boolean isMobProtectionEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("mobs", true);
+    }
+
+    public void toggleMobProtection(Player player) {
+        toggleFlag(player, "mobs");
+    }
+
+    public boolean isPetProtectionEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("pets", true);
+    }
+
+    public void togglePetProtection(Player player) {
+        toggleFlag(player, "pets");
+    }
+
+    public boolean isEntityProtectionEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("entities", true);
+    }
+
+    public void toggleEntityProtection(Player player) {
+        toggleFlag(player, "entities");
+    }
+
+    public boolean isFarmProtectionEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("farm", true);
+    }
+
+    public void toggleFarmProtection(Player player) {
+        toggleFlag(player, "farm");
+    }
+
+    /* -----------------------------
+     * Helpers
+     * ----------------------------- */
+    private void toggleFlag(Player player, String flag) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        if (plot == null) {
+            player.sendMessage(ChatColor.RED + "❌ You are not standing in your claim!");
+            return;
+        }
+        boolean current = plot.getFlag(flag, true);
+        plot.setFlag(flag, !current);
+        player.sendMessage(ChatColor.YELLOW + "⚙ " + flag.toUpperCase() + " set to " + (!current));
+    }
+
     private boolean canBuild(Player p, PlotStore.Plot plot) {
-        if (p.hasPermission("aegisguard.admin")) return true; // bypass
+        if (p.hasPermission("aegisguard.admin")) return true;
         if (p.getUniqueId().equals(plot.getOwner())) return true;
         return plot.getTrusted().contains(p.getUniqueId());
+    }
+
+    private boolean isContainer(Material type) {
+        return type == Material.CHEST ||
+               type == Material.TRAPPED_CHEST ||
+               type == Material.BARREL ||
+               type == Material.FURNACE ||
+               type == Material.BLAST_FURNACE ||
+               type == Material.SMOKER ||
+               type == Material.HOPPER ||
+               type == Material.DROPPER ||
+               type == Material.DISPENSER ||
+               type == Material.SHULKER_BOX;
     }
 }
