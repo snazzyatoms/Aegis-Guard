@@ -180,6 +180,10 @@ farm_toggle_lore:
 back_lore:
   - "&7Return to the Guardian Codex"
 
+# Admin
+admin_bypass_limit: "&e⚠ You bypassed the claim limit as an admin."
+admin_removed_banned: "&c✔ Removed plots of banned player {PLAYER}."
+
 # Help
 help_header: "&b⚔ &nGuardian Codex Help&r"
 help_lines:
