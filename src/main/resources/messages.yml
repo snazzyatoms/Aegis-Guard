@@ -227,5 +227,13 @@ admin_bypass_limit: "&e⚠ [Admin] You bypassed the claim limit."
 admin_removed_banned: "&c✔ [Admin] Removed all plots owned by banned player {PLAYER}."
 admin_removed_banned_broadcast: "&c⚠ All plots owned by banned player {PLAYER} have been removed."
 admin_action_logged: "&7[Log] {PLAYER} performed an admin action."
+
+# Explicit toggle feedback
+admin_auto_remove_enabled: "&a✔ Auto-remove for banned players is now ENABLED."
+admin_auto_remove_disabled: "&c❌ Auto-remove for banned players is now DISABLED."
+
+admin_bypass_enabled: "&a✔ Admins now bypass claim limits."
+admin_bypass_disabled: "&c❌ Admins no longer bypass claim limits."
+
 admin_broadcast_enabled: "&a✔ Admin actions are now broadcast to ALL players."
 admin_broadcast_disabled: "&c❌ Admin actions are now visible to admins & console only."
