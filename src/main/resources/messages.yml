@@ -1,6 +1,14 @@
 # ======================================
 # AegisGuard v1.0 - Messages
 # ======================================
+# Placeholders Guide:
+#   {PLAYER}   = Player name
+#   {X}, {Z}   = Coordinates of a block
+#   {AMOUNT}   = Amount of currency/items
+#   {ITEM}     = Item type (DIAMOND, EMERALD, etc.)
+#   {PERCENT}  = Refund percentage
+#   {WORLD}    = World name (future use)
+# ======================================
 
 prefix: "&8[&bAegisGuard&8]&r "
 
