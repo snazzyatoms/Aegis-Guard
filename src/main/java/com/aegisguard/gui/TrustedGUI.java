@@ -5,7 +5,6 @@ import com.aegisguard.data.Plot;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -90,7 +89,7 @@ public class TrustedGUI {
         ));
 
         owner.openInventory(inv);
-        owner.playSound(owner.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // page turn when opening
+        plugin.sounds().playMenuOpen(owner); // 📖 opening page
     }
 
     /* -----------------------------
@@ -121,7 +120,7 @@ public class TrustedGUI {
                         if (target != null && plot.isTrusted(target.getUniqueId())) {
                             plot.removeTrusted(target.getUniqueId());
                             plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                            player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.8f); // deep page flip
+                            plugin.sounds().playMenuFlip(player); // ⚡ page flip
                             open(player);
                         }
                     }
@@ -146,7 +145,7 @@ public class TrustedGUI {
                         addMenu.setItem(slot++, head);
                     }
                     player.openInventory(addMenu);
-                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.2f); // light page flip
+                    plugin.sounds().playMenuFlip(player);
                 }
                 case BARRIER -> {
                     String removeTitle = plugin.msg().get("remove_trusted_title");
@@ -169,15 +168,15 @@ public class TrustedGUI {
                     }
 
                     player.openInventory(removeMenu);
-                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.9f); // darker flip
+                    plugin.sounds().playMenuFlip(player);
                 }
                 case ARROW -> {
                     plugin.gui().openMain(player);
-                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // page back
+                    plugin.sounds().playMenuFlip(player);
                 }
                 case BARRIER -> {
                     player.closeInventory();
-                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PUT, 1f, 0.8f); // closing book
+                    plugin.sounds().playMenuClose(player);
                 }
                 case WRITABLE_BOOK -> {
                     for (String line : plugin.msg().getList("info_trusted_lore")) {
@@ -203,7 +202,7 @@ public class TrustedGUI {
                     }
                     plot.addTrusted(target.getUniqueId());
                     plugin.msg().send(player, "trusted_added", "PLAYER", target.getName());
-                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.3f); // uplifting flip
+                    plugin.sounds().playMenuFlip(player);
                     if (target.isOnline()) {
                         plugin.msg().send(target.getPlayer(), "trusted_added_target", "PLAYER", player.getName());
                     }
@@ -220,7 +219,7 @@ public class TrustedGUI {
                 if (target != null && plot.isTrusted(target.getUniqueId())) {
                     plot.removeTrusted(target.getUniqueId());
                     plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.8f); // heavier flip
+                    plugin.sounds().playMenuFlip(player);
                     open(player);
                 }
             }
