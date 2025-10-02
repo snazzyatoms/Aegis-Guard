@@ -1,9 +1,7 @@
 # ======================================
 # AegisGuard v1.0 - Config
 # ======================================
-
-# ======================================
-# Economy & Costs
+# Quick Defaults
 # ======================================
 use_vault: true            # true = use Vault currency, false = item cost
 claim_cost: 100.0          # Vault cost per claim (only if use_vault = true)
@@ -18,8 +16,7 @@ refund_percent: 0          # % refunded (0 = none, 50 = half, 100 = full)
 # ======================================
 # Claiming & Limits
 # ======================================
-claims:
-  max_per_player: 1         # Maximum number of claims allowed per player (default: 1)
+limits:
   min_radius: 1             # Minimum radius for a claim (in blocks)
   max_radius: 32            # Maximum radius for a claim (in blocks)
   max_area: 16000           # Maximum total claim area (blocks^2)
@@ -40,16 +37,6 @@ protections:
   no_mobs_in_claims: true      # Prevent hostile mobs from spawning inside claims
   pvp_protection: true         # Disable PvP inside claims (trusted players exempt)
   container_protection: true   # Block non-trusted players from opening chests/furnaces
-  pet_protection: true         # Prevent harming pets inside claims
-  entity_protection: true      # Prevent breaking item frames, armor stands, etc.
-  farm_protection: true        # Prevent trampling farmland (players, mobs, NPCs)
-
-# ======================================
-# Admin Controls
-# ======================================
-admin:
-  auto_remove_banned_plots: false   # If true, plots owned by banned players are removed automatically
-  bypass_claim_limit: false         # If true, admins bypass claim limits (disabled by default)
 
 # ======================================
 # Sounds & Immersion
@@ -58,7 +45,13 @@ sounds:
   global_enabled: true         # Master toggle:
                                # - true: Sounds are enabled globally by default
                                # - false: Disables ALL sounds plugin-wide (players cannot re-enable)
-  players: {}                  # Per-player toggles are stored automatically here
-                               # Example:
-                               #   players:
-                               #     <uuid>: false   # This player disabled sounds
+  players: {}                  # Per-player toggles stored automatically
+
+# ======================================
+# Admin Options
+# ======================================
+admin:
+  auto_remove_banned: false     # Remove all plots of a banned player automatically
+  bypass_claim_limit: false     # Allow admins to bypass claim limits
+  broadcast_admin_actions: false # If true, admin actions are shown to ALL players
+                                # If false (default), only admins + console see them
