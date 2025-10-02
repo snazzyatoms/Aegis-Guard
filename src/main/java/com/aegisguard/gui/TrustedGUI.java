@@ -46,7 +46,8 @@ public class TrustedGUI {
 
             if (meta != null) {
                 meta.setOwningPlayer(trusted);
-                meta.setDisplayName(plugin.msg().color("&a" + (trusted.getName() != null ? trusted.getName() : "Unknown")));
+                String playerName = trusted.getName() != null ? trusted.getName() : "Unknown";
+                meta.setDisplayName(plugin.msg().color("&a" + playerName));
                 meta.setLore(plugin.msg().getList("trusted_menu_lore"));
                 head.setItemMeta(meta);
             }
@@ -54,29 +55,39 @@ public class TrustedGUI {
         }
 
         // Add Trusted
-        inv.setItem(45, GUIManager.icon(Material.EMERALD,
+        inv.setItem(45, GUIManager.icon(
+                Material.EMERALD,
                 plugin.msg().get("button_add_trusted"),
-                plugin.msg().getList("add_trusted_lore")));
+                plugin.msg().getList("add_trusted_lore")
+        ));
 
         // Remove Trusted
-        inv.setItem(46, GUIManager.icon(Material.BARRIER,
+        inv.setItem(46, GUIManager.icon(
+                Material.BARRIER,
                 plugin.msg().get("button_remove_trusted"),
-                plugin.msg().getList("remove_trusted_lore")));
+                plugin.msg().getList("remove_trusted_lore")
+        ));
 
         // Info & Guide
-        inv.setItem(51, GUIManager.icon(Material.WRITABLE_BOOK,
+        inv.setItem(51, GUIManager.icon(
+                Material.WRITABLE_BOOK,
                 plugin.msg().get("button_info"),
-                plugin.msg().getList("info_trusted_lore")));
+                plugin.msg().getList("info_trusted_lore")
+        ));
 
         // Back
-        inv.setItem(52, GUIManager.icon(Material.ARROW,
+        inv.setItem(52, GUIManager.icon(
+                Material.ARROW,
                 plugin.msg().get("button_back"),
-                List.of(plugin.msg().get("menu_title"))));
+                List.of(plugin.msg().color("&7" + plugin.msg().get("menu_title")))
+        ));
 
         // Exit
-        inv.setItem(53, GUIManager.icon(Material.BARRIER,
+        inv.setItem(53, GUIManager.icon(
+                Material.BARRIER,
                 plugin.msg().get("button_exit"),
-                List.of(plugin.msg().color("&7Close this menu"))));
+                plugin.msg().getList("exit_lore")
+        ));
 
         owner.openInventory(inv);
     }
@@ -100,7 +111,7 @@ public class TrustedGUI {
         }
 
         // Trusted Players menu
-        if (title.equalsIgnoreCase(plugin.msg().get("trusted_menu_title"))) {
+        if (title.equals(plugin.msg().get("trusted_menu_title"))) {
             switch (type) {
                 case PLAYER_HEAD -> {
                     ItemStack head = e.getCurrentItem();
@@ -109,14 +120,14 @@ public class TrustedGUI {
                         if (target != null && plot.isTrusted(target.getUniqueId())) {
                             plot.removeTrusted(target.getUniqueId());
                             plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                            open(player);
+                            open(player); // refresh
                         }
                     }
                 }
                 case EMERALD -> {
-                    // Open Add Trusted submenu
                     String addTitle = plugin.msg().get("add_trusted_title");
                     Inventory addMenu = Bukkit.createInventory(null, 54, addTitle);
+
                     int slot = 0;
                     for (Player online : Bukkit.getOnlinePlayers()) {
                         if (slot >= 54) break;
@@ -127,7 +138,7 @@ public class TrustedGUI {
                         if (meta != null) {
                             meta.setOwningPlayer(online);
                             meta.setDisplayName(plugin.msg().color("&e" + online.getName()));
-                            meta.setLore(List.of(plugin.msg().color("&7Click to trust this player")));
+                            meta.setLore(plugin.msg().getList("add_trusted_lore"));
                             head.setItemMeta(meta);
                         }
                         addMenu.setItem(slot++, head);
@@ -145,7 +156,7 @@ public class TrustedGUI {
         }
 
         // Add Trusted Player menu
-        else if (title.equalsIgnoreCase(plugin.msg().get("add_trusted_title")) && type == Material.PLAYER_HEAD) {
+        else if (title.equals(plugin.msg().get("add_trusted_title")) && type == Material.PLAYER_HEAD) {
             ItemStack head = e.getCurrentItem();
             if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
                 OfflinePlayer target = meta.getOwningPlayer();
