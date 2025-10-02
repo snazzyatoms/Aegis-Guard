@@ -20,8 +20,8 @@ import java.util.UUID;
  * SelectionService
  * - Handles Aegis Scepter interactions
  * - Selects corners and creates plots
+ * - Opens Guardian Codex GUI via right-click air
  * - Integrates VaultHook & refund system
- * - Reads defaults from config.yml (quick defaults > claim.* section)
  */
 public class SelectionService implements Listener {
 
@@ -47,6 +47,23 @@ public class SelectionService implements Listener {
 
         Action action = e.getAction();
         Location loc = e.getClickedBlock() != null ? e.getClickedBlock().getLocation() : null;
+
+        // Right-click air → Open Guardian Codex GUI
+        if (action == Action.RIGHT_CLICK_AIR) {
+            plugin.gui().openMain(p);
+            p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f);
+            return;
+        }
+
+        // Sneak + right-click block → Open Guardian Codex GUI
+        if (action == Action.RIGHT_CLICK_BLOCK && p.isSneaking()) {
+            plugin.gui().openMain(p);
+            p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.8f);
+            e.setCancelled(true);
+            return;
+        }
+
+        // Handle claim corner selection
         if (loc == null) return;
 
         if (action == Action.LEFT_CLICK_BLOCK) {
