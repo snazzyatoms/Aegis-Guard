@@ -1,7 +1,6 @@
 package com.aegisguard.gui;
 
 import com.aegisguard.AegisGuard;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,7 +10,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
  * GUIListener
  * - Captures click events in GUIs
  * - Delegates to GUIManager + TrustedGUI
- * - Adds immersive sound feedback
+ * - Uses SoundManager for immersive feedback
  */
 public class GUIListener implements Listener {
 
@@ -36,7 +35,7 @@ public class GUIListener implements Listener {
         // Guardian Codex (Main Menu)
         if (title.equals(plugin.msg().get("menu_title"))) {
             gui.handleClick(e);
-            playPageSound(player);
+            plugin.sounds().playMenuFlip(player);
             return;
         }
 
@@ -47,32 +46,24 @@ public class GUIListener implements Listener {
 
             trustedGUI.handleClick(player, e);
 
-            // Special handling for Exit
-            String itemName = e.getCurrentItem().getItemMeta() != null ?
-                    e.getCurrentItem().getItemMeta().getDisplayName() : "";
+            // Safely check item name
+            String itemName = e.getCurrentItem().getItemMeta() != null
+                    ? e.getCurrentItem().getItemMeta().getDisplayName()
+                    : "";
 
             if (itemName.equals(plugin.msg().get("button_exit"))) {
-                playCloseSound(player);
+                plugin.sounds().playMenuClose(player);
             } else if (itemName.equals(plugin.msg().get("button_back"))) {
-                playPageSound(player);
+                plugin.sounds().playMenuFlip(player);
             } else {
-                playPageSound(player);
+                plugin.sounds().playMenuFlip(player);
             }
         }
-    }
 
-    /* -----------------------------
-     * Sound Helpers
-     * ----------------------------- */
-    private void playPageSound(Player player) {
-        if (plugin.cfg().getBoolean("sounds.enabled", true)) {
-            player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f);
-        }
-    }
-
-    private void playCloseSound(Player player) {
-        if (plugin.cfg().getBoolean("sounds.enabled", true)) {
-            player.playSound(player.getLocation(), Sound.ITEM_BOOK_PUT, 1f, 0.9f);
+        // Settings Menu
+        if (title.equals(plugin.msg().get("settings_menu_title"))) {
+            gui.handleClick(e); // settings clicks handled in GUIManager
+            plugin.sounds().playMenuFlip(player);
         }
     }
 }
