@@ -3,7 +3,6 @@ package com.aegisguard.selection;
 import com.aegisguard.AegisGuard;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,8 +20,8 @@ import java.util.UUID;
  * - Handles Aegis Scepter interactions
  * - Selects corners and creates plots
  * - Integrates VaultHook & refund system
- * - Reads defaults from config.yml (quick defaults > claim.* section)
- * - Adds immersive codex-themed sounds
+ * - Reads defaults from config.yml
+ * - Uses SoundManager for immersive codex-themed audio
  */
 public class SelectionService implements Listener {
 
@@ -53,12 +52,12 @@ public class SelectionService implements Listener {
         if (action == Action.LEFT_CLICK_BLOCK) {
             corner1.put(p.getUniqueId(), loc);
             plugin.msg().send(p, "corner1_set", "{X}", String.valueOf(loc.getBlockX()), "{Z}", String.valueOf(loc.getBlockZ()));
-            p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.2f); // page mark sound
+            plugin.sounds().playMenuFlip(p); // page mark sound
             e.setCancelled(true);
         } else if (action == Action.RIGHT_CLICK_BLOCK) {
             corner2.put(p.getUniqueId(), loc);
             plugin.msg().send(p, "corner2_set", "{X}", String.valueOf(loc.getBlockX()), "{Z}", String.valueOf(loc.getBlockZ()));
-            p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // page mark sound
+            plugin.sounds().playMenuFlip(p); // page mark sound
             e.setCancelled(true);
         }
     }
@@ -70,12 +69,12 @@ public class SelectionService implements Listener {
         UUID id = p.getUniqueId();
         if (plugin.store().hasPlot(id)) {
             plugin.msg().send(p, "already_has_plot");
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f); // fail page
+            plugin.sounds().playMenuClose(p); // fail page
             return;
         }
         if (!corner1.containsKey(id) || !corner2.containsKey(id)) {
             plugin.msg().send(p, "must_select");
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f); // fail page
+            plugin.sounds().playMenuClose(p); // fail page
             return;
         }
 
@@ -87,7 +86,7 @@ public class SelectionService implements Listener {
 
         if (useVault && cost > 0 && !plugin.vault().charge(p, cost)) {
             plugin.msg().send(p, "need_vault", "{AMOUNT}", String.valueOf(cost));
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
+            plugin.sounds().playMenuClose(p);
             return;
         } else if (!useVault && itemAmount > 0) {
             Material mat = Material.matchMaterial(itemType);
@@ -95,7 +94,7 @@ public class SelectionService implements Listener {
                 ItemStack required = new ItemStack(mat, itemAmount);
                 if (!p.getInventory().containsAtLeast(required, itemAmount)) {
                     plugin.msg().send(p, "need_items", "{AMOUNT}", String.valueOf(itemAmount), "{ITEM}", itemType);
-                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
+                    plugin.sounds().playMenuClose(p);
                     return;
                 }
                 p.getInventory().removeItem(required);
@@ -115,7 +114,8 @@ public class SelectionService implements Listener {
             plugin.msg().send(p, "items_deducted", "{AMOUNT}", String.valueOf(itemAmount), "{ITEM}", itemType);
         }
 
-        p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.9f); // page turn for claim
+        // Magical claim sound
+        plugin.sounds().playClaimMagic(p);
 
         if (plugin.cfg().getBoolean("effects.on_claim.lightning_visual", true)) {
             p.getWorld().strikeLightningEffect(c1);
@@ -129,7 +129,7 @@ public class SelectionService implements Listener {
         UUID id = p.getUniqueId();
         if (!plugin.store().hasPlot(id)) {
             plugin.msg().send(p, "no_plot_here");
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f); // fail page
+            plugin.sounds().playMenuClose(p);
             return;
         }
 
@@ -160,6 +160,8 @@ public class SelectionService implements Listener {
 
         plugin.store().removePlot(id);
         plugin.msg().send(p, "plot_unclaimed");
-        p.playSound(p.getLocation(), Sound.ITEM_BOOK_PUT, 1f, 0.8f); // closing book for unclaim
+
+        // Magical unclaim sound
+        plugin.sounds().playUnclaim(p);
     }
 }
