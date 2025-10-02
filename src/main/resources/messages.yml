@@ -15,7 +15,7 @@ prefix: "&8[&bAegisGuard&8]&r "
 # General
 no_perm: "&cYou do not have permission."
 players_only: "&cOnly players can use this command."
-usage_main: "&eUsage: /aegis <wand|menu|claim|unclaim|sound|help>"
+usage_main: "&eUsage: /aegis <wand|menu|claim|unclaim|help>"
 
 # Wand & Selection
 wand_given: "&aAegis Scepter granted."
@@ -53,6 +53,7 @@ menu_title: "&b⚔ Guardian Codex ⚔"
 trusted_menu_title: "&eTrusted Players"
 add_trusted_title: "&aAdd Trusted Player"
 remove_trusted_title: "&cRemove Trusted Player"
+settings_menu_title: "&9⚙ Settings"
 
 # GUI Buttons
 button_claim_land: "&aClaim Land"
@@ -63,6 +64,8 @@ button_add_trusted: "&aAdd Trusted"
 button_remove_trusted: "&cRemove Trusted"
 button_back: "&eBack"
 button_exit: "&cExit"
+button_sounds_on: "&a🔊 Sounds: ON"
+button_sounds_off: "&c🔇 Sounds: OFF"
 
 # GUI Lores
 claim_land_lore:
@@ -76,6 +79,7 @@ trusted_players_lore:
 settings_lore:
   - "&7Toggle protections & preferences."
   - "&8(PvP, containers, mob spawning)"
+  - "&8Includes personal sound options"
 
 info_lore:
   - "&7This menu is your all-in-one land protection hub."
@@ -106,11 +110,17 @@ info_trusted_lore:
   - "&c✖ Not unclaim"
   - "&c✖ Not transfer ownership"
 
-# Sound Management
-sound_global_enabled: "&a✔ Global sounds have been enabled."
-sound_global_disabled: "&c❌ Global sounds have been disabled."
-sound_player_enabled: "&a✔ Sounds enabled for {PLAYER}."
-sound_player_disabled: "&c❌ Sounds disabled for {PLAYER}."
+# Sounds
+sound_enabled: "&a✔ Sounds enabled for your menus."
+sound_disabled: "&c❌ Sounds disabled for your menus."
+
+sounds_toggle_lore:
+  - "&7Toggle your personal sound effects"
+  - "&7This only affects you"
+  - "&eClick to switch"
+
+back_lore:
+  - "&7Return to the Guardian Codex"
 
 # Help
 help_header: "&b⚔ &nGuardian Codex Help&r"
@@ -120,12 +130,10 @@ help_lines:
   - "&e/aegis menu &7- Open the Guardian Codex menu"
   - "&e/aegis claim &7- Claim land using your selection"
   - "&e/aegis unclaim &7- Unclaim your current land"
-  - "&e/aegis sound &7- Toggle menu sounds (global or per-player)"
   - "&e/aegis help &7- Show this help page"
   - "&7--------------------------------------"
 
 # Misc
-settings_coming_soon: "&9⚙ Settings GUI coming soon!"
 info_message: "&6📖 The Guardian Codex explains everything about land protection."
 
 # Effects
