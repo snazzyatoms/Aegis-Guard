@@ -27,6 +27,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  *  - Registers managers & listeners
  *  - Handles main /aegis command
  *  - Provides Aegis Scepter utility
+ *
+ *  NOTE: /aegis sound is kept as a fallback admin override
+ *        in case GUI toggles fail or configs need quick fixes.
  * ==============================================================
  */
 public class AegisGuard extends JavaPlugin {
@@ -58,11 +61,9 @@ public class AegisGuard extends JavaPlugin {
      * ----------------------------- */
     @Override
     public void onEnable() {
-        // Ensure config + messages exist
         saveDefaultConfig();
         saveResource("messages.yml", false);
 
-        // Initialize managers
         this.configMgr   = new AGConfig(this);
         this.plotStore   = new PlotStore(this);
         this.selection   = new SelectionService(this);
@@ -71,7 +72,6 @@ public class AegisGuard extends JavaPlugin {
         this.vault       = new VaultHook(this);
         this.messages    = new MessagesUtil(this);
 
-        // Register events
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
         Bukkit.getPluginManager().registerEvents(protection, this);
         Bukkit.getPluginManager().registerEvents(selection, this);
@@ -81,7 +81,7 @@ public class AegisGuard extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        plotStore.flushSync(); // Save data before shutdown
+        plotStore.flushSync();
         getLogger().info("AegisGuard disabled. Data saved.");
     }
 
@@ -109,6 +109,49 @@ public class AegisGuard extends JavaPlugin {
             case "menu" -> gui.openMain(p);
             case "claim" -> selection.confirmClaim(p);
             case "unclaim" -> selection.unclaimHere(p);
+
+            case "sound" -> {
+                // Admin fallback control
+                if (!p.hasPermission("aegisguard.admin")) {
+                    msg().send(p, "no_perm");
+                    return true;
+                }
+                if (args.length < 2) {
+                    p.sendMessage("§eUsage:");
+                    p.sendMessage("§7/aegis sound global <on|off>");
+                    p.sendMessage("§7/aegis sound player <name> <on|off>");
+                    return true;
+                }
+                switch (args[1].toLowerCase()) {
+                    case "global" -> {
+                        if (args.length < 3) {
+                            p.sendMessage("§cUsage: /aegis sound global <on|off>");
+                            return true;
+                        }
+                        boolean enable = args[2].equalsIgnoreCase("on");
+                        getConfig().set("sounds.global_enabled", enable);
+                        saveConfig();
+                        msg().send(p, enable ? "sound_global_enabled" : "sound_global_disabled");
+                    }
+                    case "player" -> {
+                        if (args.length < 4) {
+                            p.sendMessage("§cUsage: /aegis sound player <name> <on|off>");
+                            return true;
+                        }
+                        Player target = Bukkit.getPlayer(args[2]);
+                        if (target == null) {
+                            p.sendMessage("§cPlayer not found: " + args[2]);
+                            return true;
+                        }
+                        boolean enable = args[3].equalsIgnoreCase("on");
+                        getConfig().set("sounds.players." + target.getUniqueId(), enable);
+                        saveConfig();
+                        msg().send(p, enable ? "sound_player_enabled" : "sound_player_disabled", "PLAYER", target.getName());
+                    }
+                    default -> p.sendMessage("§cInvalid mode. Use §7global §cor §7player");
+                }
+            }
+
             default -> msg().send(p, "usage_main");
         }
         return true;
@@ -138,15 +181,13 @@ public class AegisGuard extends JavaPlugin {
      * Utility: Sound Control
      * ----------------------------- */
     public boolean isSoundEnabled(Player player) {
-        // First check global toggle
         if (!getConfig().getBoolean("sounds.global_enabled", true)) {
             return false;
         }
-        // Then check per-player override
         String key = "sounds.players." + player.getUniqueId();
         if (getConfig().isSet(key)) {
             return getConfig().getBoolean(key, true);
         }
-        return true; // default = sounds enabled
+        return true;
     }
 }
