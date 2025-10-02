@@ -115,21 +115,26 @@ public void unclaimHere(Player p) {
     }
 
     // Refund system
-    boolean refund = plugin.getConfig().getBoolean("claim.refund_on_unclaim", false);
+    boolean refundEnabled = plugin.getConfig().getBoolean("claim.refund_on_unclaim", false);
+    int refundPercent = plugin.getConfig().getInt("claim.refund_percent", 0);
     boolean useVault = plugin.getConfig().getBoolean("claim.use_vault", true);
     double vaultCost = plugin.getConfig().getDouble("claim.cost", 0.0);
     String itemType = plugin.getConfig().getString("claim.item.type", "DIAMOND");
     int itemAmount = plugin.getConfig().getInt("claim.item.amount", 0);
 
-    if (refund) {
+    if (refundEnabled && refundPercent > 0) {
         if (useVault && vaultCost > 0) {
-            plugin.vault().give(p, vaultCost);
-            p.sendMessage(ChatColor.YELLOW + "💰 Refunded $" + vaultCost + " for unclaiming.");
+            double refundAmount = (vaultCost * refundPercent) / 100.0;
+            plugin.vault().give(p, refundAmount);
+            p.sendMessage(ChatColor.YELLOW + "💰 Refunded $" + refundAmount + " (" + refundPercent + "%) for unclaiming.");
         } else {
             var mat = Material.matchMaterial(itemType);
             if (mat != null && itemAmount > 0) {
-                p.getInventory().addItem(new ItemStack(mat, itemAmount));
-                p.sendMessage(ChatColor.YELLOW + "💎 Refunded " + itemAmount + " " + itemType + "(s) for unclaiming.");
+                int refundCount = (int) Math.floor((itemAmount * refundPercent) / 100.0);
+                if (refundCount > 0) {
+                    p.getInventory().addItem(new ItemStack(mat, refundCount));
+                    p.sendMessage(ChatColor.YELLOW + "💎 Refunded " + refundCount + " " + itemType + "(s) (" + refundPercent + "%) for unclaiming.");
+                }
             }
         }
     }
