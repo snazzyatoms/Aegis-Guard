@@ -5,9 +5,11 @@
 # ======================================
 use_vault: true            # true = use Vault currency, false = item cost
 claim_cost: 100.0          # Vault cost per claim (only if use_vault = true)
+
 item_cost:                 # Item payment alternative (only if use_vault = false)
   type: DIAMOND
   amount: 5
+
 refund_on_unclaim: false   # true = give players refunds when unclaiming
 refund_percent: 0          # % refunded (0 = none, 50 = half, 100 = full)
 
@@ -16,21 +18,10 @@ refund_percent: 0          # % refunded (0 = none, 50 = half, 100 = full)
 # ======================================
 
 limits:
-  min_radius: 1           # Minimum radius for a claim (in blocks)
-  max_radius: 32          # Maximum radius for a claim (in blocks)
-  max_area: 16000         # Maximum total claim area (blocks^2)
-  preview_seconds: 10     # How long (in seconds) a claim preview lasts
-
-claim:
-  use_vault: true         # true = use Vault currency, false = use item costs
-  cost: 100.0             # Vault cost per claim (if use_vault = true)
-  
-  item:
-    type: DIAMOND         # Item type for claim cost (if use_vault = false)
-    amount: 5             # Amount of that item required
-  
-  refund_on_unclaim: false  # true = refund players when they unclaim land
-  refund_percent: 0         # Percent refunded (0 = none, 50 = half, 100 = full)
+  min_radius: 1            # Minimum radius for a claim (in blocks)
+  max_radius: 32           # Maximum radius for a claim (in blocks)
+  max_area: 16000          # Maximum total claim area (blocks^2)
+  preview_seconds: 10      # How long (in seconds) a claim preview lasts
 
 effects:
   on_claim:
@@ -38,6 +29,6 @@ effects:
     particle: TOTEM         # Particle effect when claiming (TOTEM, FLAME, HEART, etc.)
 
 protections:
-  no_mobs_in_claims: true     # Prevent hostile mobs from spawning inside claims
-  pvp_protection: true        # Disable PvP inside claims (trusted players exempt)
-  container_protection: true  # Block non-trusted players from opening chests/furnaces
+  no_mobs_in_claims: true      # Prevent hostile mobs from spawning inside claims
+  pvp_protection: true         # Disable PvP inside claims (trusted players exempt)
+  container_protection: true   # Block non-trusted players from opening chests/furnaces
