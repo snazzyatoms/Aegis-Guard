@@ -64,9 +64,30 @@ button_add_trusted: "&aAdd Trusted"
 button_remove_trusted: "&cRemove Trusted"
 button_back: "&eBack"
 button_exit: "&cExit"
+
+# Sound Buttons
 button_sounds_on: "&a🔊 Sounds: ON"
 button_sounds_off: "&c🔇 Sounds: OFF"
 button_sounds_disabled_global: "&7🔇 Sounds Disabled (Global)"
+
+# Protection Toggles - Buttons
+button_pvp_on: "&a⚔ PvP Protection: ON"
+button_pvp_off: "&c⚔ PvP Protection: OFF"
+
+button_containers_on: "&a📦 Container Protection: ON"
+button_containers_off: "&c📦 Container Protection: OFF"
+
+button_mobs_on: "&a🧟 Mob Protection: ON"
+button_mobs_off: "&c🧟 Mob Protection: OFF"
+
+button_pets_on: "&a🐾 Pet Protection: ON"
+button_pets_off: "&c🐾 Pet Protection: OFF"
+
+button_entity_on: "&a🛡 Entity Protection: ON"
+button_entity_off: "&c🛡 Entity Protection: OFF"
+
+button_farm_on: "&a🌾 Farm Protection: ON"
+button_farm_off: "&c🌾 Farm Protection: OFF"
 
 # GUI Lores
 claim_land_lore:
@@ -79,7 +100,7 @@ trusted_players_lore:
 
 settings_lore:
   - "&7Toggle protections & preferences."
-  - "&8(PvP, containers, mob spawning)"
+  - "&8(PvP, containers, mob spawning, pets, etc.)"
   - "&8Includes personal sound options"
 
 info_lore:
@@ -125,6 +146,37 @@ sounds_toggle_global_disabled_lore:
   - "&c⚠ Disabled globally by server owners"
   - "&7Ask an admin if this should be changed"
 
+# Protection Toggles - Lore
+pvp_toggle_lore:
+  - "&7If &aON&7: PvP is blocked inside your claim"
+  - "&7Trusted players are exempt"
+  - "&cIf OFF: PvP is allowed"
+
+container_toggle_lore:
+  - "&7If &aON&7: Chests, furnaces, anvils, etc."
+  - "&7are protected from outsiders"
+  - "&cIf OFF: Anyone can open containers"
+
+mob_toggle_lore:
+  - "&7If &aON&7: Hostile mobs cannot spawn"
+  - "&7inside your claim (safer plots)"
+  - "&cIf OFF: Mobs can spawn freely"
+
+pet_toggle_lore:
+  - "&7If &aON&7: Pets (wolves, cats, horses)"
+  - "&7are protected from other players"
+  - "&cIf OFF: Pets can be harmed"
+
+entity_toggle_lore:
+  - "&7If &aON&7: Item frames, armor stands,"
+  - "&7paintings, etc. are protected"
+  - "&cIf OFF: They can be broken by others"
+
+farm_toggle_lore:
+  - "&7If &aON&7: Farmland cannot be trampled"
+  - "&7by players, mobs, or NPCs"
+  - "&cIf OFF: Farmland can be destroyed"
+
 back_lore:
   - "&7Return to the Guardian Codex"
 
@@ -137,7 +189,7 @@ help_lines:
   - "&e/aegis claim &7- Claim land using your selection"
   - "&e/aegis unclaim &7- Unclaim your current land"
   - "&e/aegis help &7- Show this help page"
-  - "&8⚙ &7Personal sound toggles are in the Settings menu"
+  - "&8⚙ &7Personal sound & protection toggles are in Settings"
   - "&7--------------------------------------"
 
 # Misc
