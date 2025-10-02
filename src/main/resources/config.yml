@@ -1,7 +1,9 @@
 # ======================================
 # AegisGuard v1.0 - Config
 # ======================================
-# Quick Defaults
+
+# ======================================
+# Economy & Costs
 # ======================================
 use_vault: true            # true = use Vault currency, false = item cost
 claim_cost: 100.0          # Vault cost per claim (only if use_vault = true)
@@ -16,7 +18,8 @@ refund_percent: 0          # % refunded (0 = none, 50 = half, 100 = full)
 # ======================================
 # Claiming & Limits
 # ======================================
-limits:
+claims:
+  max_per_player: 1         # Maximum number of claims allowed per player (default: 1)
   min_radius: 1             # Minimum radius for a claim (in blocks)
   max_radius: 32            # Maximum radius for a claim (in blocks)
   max_area: 16000           # Maximum total claim area (blocks^2)
@@ -37,6 +40,9 @@ protections:
   no_mobs_in_claims: true      # Prevent hostile mobs from spawning inside claims
   pvp_protection: true         # Disable PvP inside claims (trusted players exempt)
   container_protection: true   # Block non-trusted players from opening chests/furnaces
+  pet_protection: true         # Prevent harming pets inside claims
+  entity_protection: true      # Prevent breaking item frames, armor stands, etc.
+  farm_protection: true        # Prevent trampling farmland (players, mobs, NPCs)
 
 # ======================================
 # Sounds & Immersion
