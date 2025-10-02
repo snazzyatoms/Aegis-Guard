@@ -137,6 +137,7 @@ help_lines:
   - "&e/aegis claim &7- Claim land using your selection"
   - "&e/aegis unclaim &7- Unclaim your current land"
   - "&e/aegis help &7- Show this help page"
+  - "&8⚙ &7Personal sound toggles are in the Settings menu"
   - "&7--------------------------------------"
 
 # Misc
