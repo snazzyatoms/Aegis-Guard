@@ -1,9 +1,18 @@
 # ======================================
 # AegisGuard v1.0 - Config
 # ======================================
-# Placeholders Guide:
-#   Values here define plugin behavior.
-#   Adjust safely; restart/reload server to apply changes.
+# Quick Defaults (edit these first if you’re new)
+# ======================================
+use_vault: true            # true = use Vault currency, false = item cost
+claim_cost: 100.0          # Vault cost per claim (only if use_vault = true)
+item_cost:                 # Item payment alternative (only if use_vault = false)
+  type: DIAMOND
+  amount: 5
+refund_on_unclaim: false   # true = give players refunds when unclaiming
+refund_percent: 0          # % refunded (0 = none, 50 = half, 100 = full)
+
+# ======================================
+# Advanced Settings
 # ======================================
 
 limits:
