@@ -7,8 +7,8 @@ import com.aegisguard.gui.GUIListener;
 import com.aegisguard.gui.GUIManager;
 import com.aegisguard.protection.ProtectionManager;
 import com.aegisguard.selection.SelectionService;
+import com.aegisguard.util.MessagesUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -40,6 +40,7 @@ public class AegisGuard extends JavaPlugin {
     private ProtectionManager protection;
     private SelectionService selection;
     private VaultHook vault;
+    private MessagesUtil messages;
 
     /* -----------------------------
      * Public Getters
@@ -50,6 +51,7 @@ public class AegisGuard extends JavaPlugin {
     public ProtectionManager protection() { return protection; }
     public SelectionService selection() { return selection; }
     public VaultHook vault() { return vault; }
+    public MessagesUtil msg() { return messages; }
 
     /* -----------------------------
      * Lifecycle
@@ -67,6 +69,7 @@ public class AegisGuard extends JavaPlugin {
         this.gui         = new GUIManager(this);
         this.protection  = new ProtectionManager(this);
         this.vault       = new VaultHook(this);
+        this.messages    = new MessagesUtil(this);
 
         // Register events
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
@@ -89,7 +92,7 @@ public class AegisGuard extends JavaPlugin {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!cmd.getName().equalsIgnoreCase("aegis")) return false;
         if (!(sender instanceof Player p)) {
-            sender.sendMessage("Players only.");
+            sender.sendMessage(msg().get("players_only"));
             return true;
         }
 
@@ -99,11 +102,14 @@ public class AegisGuard extends JavaPlugin {
         }
 
         switch (args[0].toLowerCase()) {
-            case "wand" -> p.getInventory().addItem(createScepter());
+            case "wand" -> {
+                p.getInventory().addItem(createScepter());
+                msg().send(p, "wand_given");
+            }
             case "menu" -> gui.openMain(p);
             case "claim" -> selection.confirmClaim(p);
             case "unclaim" -> selection.unclaimHere(p);
-            default -> p.sendMessage(ChatColor.RED + "Usage: /aegis <wand|menu|claim|unclaim>");
+            default -> msg().send(p, "usage_main");
         }
         return true;
     }
@@ -116,11 +122,11 @@ public class AegisGuard extends JavaPlugin {
         ItemMeta meta = rod.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(ChatColor.AQUA + "Aegis Scepter");
+            meta.setDisplayName("§bAegis Scepter");
             meta.setLore(java.util.List.of(
-                    ChatColor.GRAY + "Right-click: Open Aegis Menu",
-                    ChatColor.GRAY + "Left/Right-click: Select corners",
-                    ChatColor.GRAY + "Sneak + Left: Expand/Resize"
+                    "§7Right-click: Open Aegis Menu",
+                    "§7Left/Right-click: Select corners",
+                    "§7Sneak + Left: Expand/Resize"
             ));
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             rod.setItemMeta(meta);
