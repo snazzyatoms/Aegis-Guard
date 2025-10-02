@@ -1,7 +1,7 @@
 package com.aegisguard.gui;
 
 import com.aegisguard.AegisGuard;
-import com.aegisguard.data.Plot;
+import com.aegisguard.data.PlotStore.Plot;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -26,11 +26,13 @@ public class TrustedGUI {
      * Open Trusted Menu
      * ----------------------------- */
     public void open(Player owner) {
-        Plot plot = plugin.store().getPlot(owner.getUniqueId());
-        if (plot == null) {
+        // TODO: handle multiple plots properly; for now just pick the first
+        List<Plot> plots = plugin.store().getPlots(owner.getUniqueId());
+        if (plots.isEmpty()) {
             plugin.msg().send(owner, "no_plot_here");
             return;
         }
+        Plot plot = plots.get(0);
 
         Inventory inv = Bukkit.createInventory(null, 54, plugin.msg().get("trusted_menu_title"));
 
@@ -62,7 +64,7 @@ public class TrustedGUI {
 
         // Remove Trusted
         inv.setItem(46, GUIManager.icon(
-                Material.BARRIER,
+                Material.REDSTONE_BLOCK, // changed to avoid conflict with Exit
                 plugin.msg().get("button_remove_trusted"),
                 plugin.msg().getList("remove_trusted_lore")
         ));
@@ -78,7 +80,7 @@ public class TrustedGUI {
         inv.setItem(52, GUIManager.icon(
                 Material.ARROW,
                 plugin.msg().get("button_back"),
-                List.of(plugin.msg().color("&7" + plugin.msg().get("menu_title")))
+                plugin.msg().getList("back_lore")
         ));
 
         // Exit
@@ -102,13 +104,14 @@ public class TrustedGUI {
         Material type = e.getCurrentItem().getType();
 
         String title = e.getView().getTitle();
-        Plot plot = plugin.store().getPlot(player.getUniqueId());
-
-        if (plot == null) {
+        List<Plot> plots = plugin.store().getPlots(player.getUniqueId());
+        if (plots.isEmpty()) {
             plugin.msg().send(player, "no_plot_here");
             player.closeInventory();
+            plugin.sounds().playMenuClose(player);
             return;
         }
+        Plot plot = plots.get(0);
 
         // Trusted Players menu
         if (title.equals(plugin.msg().get("trusted_menu_title"))) {
@@ -117,10 +120,10 @@ public class TrustedGUI {
                     ItemStack head = e.getCurrentItem();
                     if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
                         OfflinePlayer target = meta.getOwningPlayer();
-                        if (target != null && plot.isTrusted(target.getUniqueId())) {
-                            plot.removeTrusted(target.getUniqueId());
+                        if (target != null && plot.getTrusted().contains(target.getUniqueId())) {
+                            plot.getTrusted().remove(target.getUniqueId());
                             plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                            plugin.sounds().playMenuFlip(player); // ⚡ page flip
+                            plugin.sounds().playMenuFlip(player);
                             open(player);
                         }
                     }
@@ -147,7 +150,7 @@ public class TrustedGUI {
                     player.openInventory(addMenu);
                     plugin.sounds().playMenuFlip(player);
                 }
-                case BARRIER -> {
+                case REDSTONE_BLOCK -> {
                     String removeTitle = plugin.msg().get("remove_trusted_title");
                     Inventory removeMenu = Bukkit.createInventory(null, 54, removeTitle);
 
@@ -196,11 +199,11 @@ public class TrustedGUI {
                         plugin.msg().send(player, "trusted_self");
                         return;
                     }
-                    if (plot.isTrusted(target.getUniqueId())) {
+                    if (plot.getTrusted().contains(target.getUniqueId())) {
                         plugin.msg().send(player, "trusted_already", "PLAYER", target.getName());
                         return;
                     }
-                    plot.addTrusted(target.getUniqueId());
+                    plot.getTrusted().add(target.getUniqueId());
                     plugin.msg().send(player, "trusted_added", "PLAYER", target.getName());
                     plugin.sounds().playMenuFlip(player);
                     if (target.isOnline()) {
@@ -216,8 +219,8 @@ public class TrustedGUI {
             ItemStack head = e.getCurrentItem();
             if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
                 OfflinePlayer target = meta.getOwningPlayer();
-                if (target != null && plot.isTrusted(target.getUniqueId())) {
-                    plot.removeTrusted(target.getUniqueId());
+                if (target != null && plot.getTrusted().contains(target.getUniqueId())) {
+                    plot.getTrusted().remove(target.getUniqueId());
                     plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
                     plugin.sounds().playMenuFlip(player);
                     open(player);
