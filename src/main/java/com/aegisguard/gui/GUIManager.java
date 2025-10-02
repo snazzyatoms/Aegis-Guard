@@ -263,29 +263,33 @@ public class GUIManager {
                 case TNT, GUNPOWDER -> {
                     if (player.hasPermission("aegisguard.admin")) {
                         boolean autoRemove = plugin.getConfig().getBoolean("admin.auto_remove_banned", false);
-                        plugin.getConfig().set("admin.auto_remove_banned", !autoRemove);
+                        boolean newState = !autoRemove;
+                        plugin.getConfig().set("admin.auto_remove_banned", newState);
                         plugin.saveConfig();
-                        player.sendMessage(plugin.msg().get("admin_action_logged")
-                                .replace("{PLAYER}", player.getName()));
+
+                        player.sendMessage(plugin.msg().get(newState ? "admin_auto_remove_enabled" : "admin_auto_remove_disabled"));
                         openSettings(player);
                     }
                 }
                 case NETHER_STAR, REDSTONE -> {
                     if (player.hasPermission("aegisguard.admin")) {
                         boolean bypass = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
-                        plugin.getConfig().set("admin.bypass_claim_limit", !bypass);
+                        boolean newState = !bypass;
+                        plugin.getConfig().set("admin.bypass_claim_limit", newState);
                         plugin.saveConfig();
-                        player.sendMessage(plugin.msg().get("admin_action_logged")
-                                .replace("{PLAYER}", player.getName()));
+
+                        player.sendMessage(plugin.msg().get(newState ? "admin_bypass_enabled" : "admin_bypass_disabled"));
                         openSettings(player);
                     }
                 }
                 case BEACON, ENDER_EYE -> {
                     if (player.hasPermission("aegisguard.admin")) {
                         boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false);
-                        plugin.getConfig().set("admin.broadcast_admin_actions", !broadcast);
+                        boolean newState = !broadcast;
+                        plugin.getConfig().set("admin.broadcast_admin_actions", newState);
                         plugin.saveConfig();
-                        player.sendMessage(plugin.msg().get(broadcast ? "admin_broadcast_disabled" : "admin_broadcast_enabled"));
+
+                        player.sendMessage(plugin.msg().get(newState ? "admin_broadcast_enabled" : "admin_broadcast_disabled"));
                         openSettings(player);
                     }
                 }
