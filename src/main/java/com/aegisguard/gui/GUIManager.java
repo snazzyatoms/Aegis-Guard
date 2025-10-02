@@ -3,6 +3,7 @@ package com.aegisguard.gui;
 import com.aegisguard.AegisGuard;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -16,6 +17,7 @@ import java.util.List;
  * - Guardian Codex main menu hub
  * - Access to claim tools, trusted players, and settings
  * - Fully synced with messages.yml for customization
+ * - Immersive sounds for book-like experience
  */
 public class GUIManager {
 
@@ -55,14 +57,14 @@ public class GUIManager {
                 plugin.msg().getList("settings_lore")
         ));
 
-        // Info & Guidebook (slot 22)
+        // Info & Guidebook
         inv.setItem(22, createItem(
                 Material.WRITABLE_BOOK,
                 plugin.msg().get("button_info"),
                 plugin.msg().getList("info_lore")
         ));
 
-        // Exit (slot 26)
+        // Exit
         inv.setItem(26, createItem(
                 Material.BARRIER,
                 plugin.msg().get("button_exit"),
@@ -70,6 +72,7 @@ public class GUIManager {
         ));
 
         player.openInventory(inv);
+        player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // 📖 open menu
     }
 
     /* -----------------------------
@@ -91,25 +94,46 @@ public class GUIManager {
             case LIGHTNING_ROD -> {
                 player.closeInventory();
                 plugin.selection().confirmClaim(player);
+                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.1f);
             }
-            case PLAYER_HEAD -> trustedGUI.open(player);
-            case REDSTONE_COMPARATOR -> player.sendMessage(plugin.msg().get("settings_coming_soon"));
-            case WRITABLE_BOOK -> player.sendMessage(plugin.msg().get("info_message"));
-            case BARRIER -> player.closeInventory();
+            case PLAYER_HEAD -> {
+                trustedGUI.open(player);
+                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f);
+            }
+            case REDSTONE_COMPARATOR -> {
+                player.sendMessage(plugin.msg().get("settings_coming_soon"));
+                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.2f);
+            }
+            case WRITABLE_BOOK -> {
+                player.sendMessage(plugin.msg().get("info_message"));
+                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.3f);
+            }
+            case BARRIER -> {
+                player.closeInventory();
+                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PUT, 1f, 0.8f); // closing book
+            }
         }
     }
 
     /* -----------------------------
      * Helper: Build Icon
      * ----------------------------- */
-    private ItemStack createItem(Material mat, String name, List<String> lore) {
+    public static ItemStack icon(Material mat, String name) {
+        return icon(mat, name, null);
+    }
+
+    public static ItemStack icon(Material mat, String name, List<String> lore) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
-            meta.setLore(lore);
+            if (lore != null) meta.setLore(lore);
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    private ItemStack createItem(Material mat, String name, List<String> lore) {
+        return icon(mat, name, lore);
     }
 }
