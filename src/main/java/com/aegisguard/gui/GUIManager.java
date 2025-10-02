@@ -3,7 +3,6 @@ package com.aegisguard.gui;
 import com.aegisguard.AegisGuard;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -17,7 +16,7 @@ import java.util.List;
  * - Guardian Codex main menu hub
  * - Access to claim tools, trusted players, and settings
  * - Fully synced with messages.yml for customization
- * - Immersive sounds for book-like experience
+ * - Uses SoundManager for immersive effects
  */
 public class GUIManager {
 
@@ -72,7 +71,7 @@ public class GUIManager {
         ));
 
         player.openInventory(inv);
-        player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // 📖 open menu
+        plugin.sounds().playMenuOpen(player); // 📖 magical open
     }
 
     /* -----------------------------
@@ -86,31 +85,31 @@ public class GUIManager {
         if (!title.equals(plugin.msg().get("menu_title"))) return;
 
         e.setCancelled(true);
-
         if (e.getCurrentItem() == null) return;
+
         Material type = e.getCurrentItem().getType();
 
         switch (type) {
             case LIGHTNING_ROD -> {
                 player.closeInventory();
                 plugin.selection().confirmClaim(player);
-                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.1f);
+                plugin.sounds().playMenuFlip(player);
             }
             case PLAYER_HEAD -> {
                 trustedGUI.open(player);
-                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f);
+                plugin.sounds().playMenuFlip(player);
             }
             case REDSTONE_COMPARATOR -> {
                 player.sendMessage(plugin.msg().get("settings_coming_soon"));
-                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.2f);
+                plugin.sounds().playMenuFlip(player);
             }
             case WRITABLE_BOOK -> {
                 player.sendMessage(plugin.msg().get("info_message"));
-                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.3f);
+                plugin.sounds().playMenuFlip(player);
             }
             case BARRIER -> {
                 player.closeInventory();
-                player.playSound(player.getLocation(), Sound.ITEM_BOOK_PUT, 1f, 0.8f); // closing book
+                plugin.sounds().playMenuClose(player);
             }
         }
     }
