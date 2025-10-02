@@ -51,6 +51,7 @@ not_trusted: "&c❌ {PLAYER} is not trusted in your plot."
 menu_title: "&b⚔ Guardian Codex ⚔"
 trusted_menu_title: "&eTrusted Players"
 add_trusted_title: "&aAdd Trusted Player"
+remove_trusted_title: "&cRemove Trusted Player"
 
 # GUI Buttons
 button_claim_land: "&aClaim Land"
@@ -96,6 +97,7 @@ add_trusted_lore:
 
 remove_trusted_lore:
   - "&7Click a head to remove a trusted player"
+  - "&eIf the player is offline, use chat commands."
 
 info_trusted_lore:
   - "&7Trusted players can:"
