@@ -1,10 +1,28 @@
+# ======================================
+# AegisGuard v1.0 - Config
+# ======================================
+
 limits:
   min_radius: 1
   max_radius: 32
   max_area: 16000
   preview_seconds: 10
 
+claim:
+  use_vault: true        # true = Vault currency, false = item cost
+  cost: 100.0            # Vault cost per claim
+  item:
+    type: DIAMOND        # Item type for claim payment
+    amount: 5            # How many items required
+  refund_on_unclaim: false  # Refund cost when unclaiming
+  refund_percent: 0      # % refund amount (0 = none, 50 = half, 100 = full)
+
 effects:
   on_claim:
     lightning_visual: true
-    particle: TOTEM
+    particle: TOTEM      # Example: TOTEM, FLAME, HEART, etc.
+
+protections:
+  no_mobs_in_claims: true  # Prevent hostile mob spawns inside claims
+  pvp_protection: true     # Disable PvP inside claims (except outside)
+  container_protection: true  # Prevent non-trusted players from opening chests, furnaces, etc.
