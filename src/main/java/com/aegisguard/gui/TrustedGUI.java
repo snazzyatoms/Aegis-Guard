@@ -116,12 +116,36 @@ public class TrustedGUI {
             inv.setItem(slot++, head);
         }
 
-        // Back button
         inv.setItem(52, GUIManager.icon(Material.ARROW, plugin.msg().get("button_back")));
-        // Exit button
         inv.setItem(53, GUIManager.icon(Material.BARRIER, plugin.msg().get("button_exit")));
 
         owner.openInventory(inv);
+    }
+
+    /* -----------------------------
+     * Open Confirmation Menu
+     * ----------------------------- */
+    private void openConfirmMenu(Player player, Plot plot, OfflinePlayer target) {
+        Inventory confirm = Bukkit.createInventory(null, 27, "Confirm Remove: " + target.getName());
+
+        // Player head in center
+        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) head.getItemMeta();
+        if (meta != null) {
+            meta.setOwningPlayer(target);
+            meta.setDisplayName(plugin.msg().color("&c" + target.getName()));
+            meta.setLore(List.of(plugin.msg().color("&7Click Confirm to remove this player.")));
+            head.setItemMeta(meta);
+        }
+        confirm.setItem(13, head);
+
+        // Confirm button
+        confirm.setItem(11, GUIManager.icon(Material.GREEN_WOOL, "§aConfirm Remove"));
+
+        // Cancel button
+        confirm.setItem(15, GUIManager.icon(Material.RED_WOOL, "§cCancel"));
+
+        player.openInventory(confirm);
     }
 
     /* -----------------------------
@@ -145,7 +169,6 @@ public class TrustedGUI {
         if (title.equals(plugin.msg().get("trusted_menu_title"))) {
             switch (type) {
                 case EMERALD -> {
-                    // Add Trusted submenu
                     String addTitle = plugin.msg().get("add_trusted_title");
                     Inventory addMenu = Bukkit.createInventory(null, 54, addTitle);
                     int slot = 0;
@@ -201,10 +224,27 @@ public class TrustedGUI {
             if (head.getItemMeta() instanceof SkullMeta meta) {
                 OfflinePlayer target = meta.getOwningPlayer();
                 if (target != null && plot.isTrusted(target.getUniqueId())) {
-                    plot.removeTrusted(target.getUniqueId());
-                    plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                    openRemoveMenu(player, plot); // refresh after removal
+                    openConfirmMenu(player, plot, target);
                 }
+            }
+        }
+
+        // Confirmation Menu
+        else if (title.startsWith("Confirm Remove:")) {
+            if (type == Material.GREEN_WOOL) {
+                // Confirm removal
+                ItemStack targetHead = e.getInventory().getItem(13);
+                if (targetHead != null && targetHead.getItemMeta() instanceof SkullMeta meta) {
+                    OfflinePlayer target = meta.getOwningPlayer();
+                    if (target != null && plot.isTrusted(target.getUniqueId())) {
+                        plot.removeTrusted(target.getUniqueId());
+                        plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
+                        openRemoveMenu(player, plot);
+                    }
+                }
+            } else if (type == Material.RED_WOOL) {
+                // Cancel → back to remove menu
+                openRemoveMenu(player, plot);
             }
         }
     }
