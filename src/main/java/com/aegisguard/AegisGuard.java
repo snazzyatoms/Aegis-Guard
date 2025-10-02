@@ -1,5 +1,6 @@
 package com.aegisguard;
 
+import com.aegisguard.admin.AdminCommand;
 import com.aegisguard.config.AGConfig;
 import com.aegisguard.data.PlotStore;
 import com.aegisguard.economy.VaultHook;
@@ -24,13 +25,17 @@ import org.bukkit.plugin.java.JavaPlugin;
  *  Main plugin entry point
  *
  *  - Loads config & resources
- *  - Registers managers & listeners
+ *  - Registers managers, listeners & commands
  *  - Handles main /aegis command
  *  - Provides Aegis Scepter utility
  *
- *  NOTE: /aegis sound is kept as a fallback admin override
- *        for global toggles only. Players control their own
- *        sounds through the Settings GUI.
+ *  Includes:
+ *   • PlotStore with ban integration
+ *   • ProtectionManager with flag toggles
+ *   • GUI Manager + Listener
+ *   • Vault economy integration
+ *   • AdminCommand (cleanup banned plots etc.)
+ *   • Sound system (per-player & global toggle)
  * ==============================================================
  */
 public class AegisGuard extends JavaPlugin {
@@ -62,9 +67,11 @@ public class AegisGuard extends JavaPlugin {
      * ----------------------------- */
     @Override
     public void onEnable() {
+        // Ensure configs exist
         saveDefaultConfig();
         saveResource("messages.yml", false);
 
+        // Initialize core systems
         this.configMgr   = new AGConfig(this);
         this.plotStore   = new PlotStore(this);
         this.selection   = new SelectionService(this);
@@ -73,9 +80,15 @@ public class AegisGuard extends JavaPlugin {
         this.vault       = new VaultHook(this);
         this.messages    = new MessagesUtil(this);
 
+        // Register listeners
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
         Bukkit.getPluginManager().registerEvents(protection, this);
         Bukkit.getPluginManager().registerEvents(selection, this);
+        Bukkit.getPluginManager().registerEvents(plotStore, this); // Ban auto-wipe support
+
+        // Register commands
+        getCommand("aegis").setExecutor(this);
+        getCommand("aegisadmin").setExecutor(new AdminCommand(this));
 
         getLogger().info("AegisGuard v" + getDescription().getVersion() + " enabled.");
     }
