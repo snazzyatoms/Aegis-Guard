@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,6 +15,7 @@ import java.util.List;
  * - Loads messages.yml
  * - Handles color codes & placeholders
  * - Safe fallbacks if keys are missing
+ * - Supports both single-line and list messages
  */
 public class MessagesUtil {
 
@@ -37,7 +39,7 @@ public class MessagesUtil {
     }
 
     /* -----------------------------
-     * Get message by key
+     * Get single-line message
      * ----------------------------- */
     public String get(String key) {
         String msg = messages.getString(key);
@@ -48,14 +50,31 @@ public class MessagesUtil {
     }
 
     /* -----------------------------
-     * Format message with placeholders
+     * Get multi-line message (list)
+     * ----------------------------- */
+    public List<String> getList(String key) {
+        List<String> raw = messages.getStringList(key);
+        if (raw == null || raw.isEmpty()) {
+            List<String> fallback = new ArrayList<>();
+            fallback.add(color("&cMissing message list: " + key));
+            return fallback;
+        }
+        List<String> out = new ArrayList<>();
+        for (String line : raw) {
+            out.add(color(line));
+        }
+        return out;
+    }
+
+    /* -----------------------------
+     * Format placeholders into a string
      * ----------------------------- */
     public String format(String key, Object... replacements) {
         String msg = get(key);
         for (int i = 0; i < replacements.length - 1; i += 2) {
             msg = msg.replace("{" + replacements[i] + "}", String.valueOf(replacements[i + 1]));
         }
-        // Add prefix automatically (unless this IS the prefix key)
+        // Add prefix unless it's the prefix itself
         if (!key.equalsIgnoreCase("prefix")) {
             msg = get("prefix") + msg;
         }
@@ -63,7 +82,23 @@ public class MessagesUtil {
     }
 
     /* -----------------------------
-     * Send message to a player
+     * Format placeholders into a list
+     * ----------------------------- */
+    public List<String> formatList(String key, Object... replacements) {
+        List<String> lines = getList(key);
+        List<String> formatted = new ArrayList<>();
+        for (String line : lines) {
+            String replaced = line;
+            for (int i = 0; i < replacements.length - 1; i += 2) {
+                replaced = replaced.replace("{" + replacements[i] + "}", String.valueOf(replacements[i + 1]));
+            }
+            formatted.add(replaced);
+        }
+        return formatted;
+    }
+
+    /* -----------------------------
+     * Send to player
      * ----------------------------- */
     public void send(Player p, String key, Object... replacements) {
         p.sendMessage(format(key, replacements));
