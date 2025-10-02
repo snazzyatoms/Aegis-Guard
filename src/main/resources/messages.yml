@@ -66,6 +66,7 @@ button_back: "&eBack"
 button_exit: "&cExit"
 button_sounds_on: "&a🔊 Sounds: ON"
 button_sounds_off: "&c🔇 Sounds: OFF"
+button_sounds_disabled_global: "&7🔇 Sounds Disabled (Global)"
 
 # GUI Lores
 claim_land_lore:
@@ -118,6 +119,11 @@ sounds_toggle_lore:
   - "&7Toggle your personal sound effects"
   - "&7This only affects you"
   - "&eClick to switch"
+
+sounds_toggle_global_disabled_lore:
+  - "&7Your personal toggle is unavailable"
+  - "&c⚠ Disabled globally by server owners"
+  - "&7Ask an admin if this should be changed"
 
 back_lore:
   - "&7Return to the Guardian Codex"
