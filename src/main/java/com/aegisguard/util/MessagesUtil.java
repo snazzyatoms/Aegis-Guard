@@ -3,7 +3,6 @@ package com.aegisguard.util;
 import com.aegisguard.AegisGuard;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -19,6 +18,7 @@ import java.util.List;
  * - Safe fallbacks if keys are missing
  * - Supports both single-line and list messages
  * - Supports admin/console-only notifications
+ * - Supports optional broadcast-to-all via config
  */
 public class MessagesUtil {
 
@@ -111,15 +111,25 @@ public class MessagesUtil {
 
     /* -----------------------------
      * Send to admins + console only
+     * OR broadcast if enabled in config
      * ----------------------------- */
     public void sendAdmin(String key, Object... replacements) {
         String msg = format(key, replacements);
-        // Console
-        Bukkit.getConsoleSender().sendMessage(msg);
-        // Online admins
-        Bukkit.getOnlinePlayers().stream()
-                .filter(p -> p.hasPermission("aegisguard.admin"))
-                .forEach(p -> p.sendMessage(msg));
+
+        // Check config for broadcast
+        boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_to_all", false);
+
+        if (broadcast) {
+            Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(msg));
+            Bukkit.getConsoleSender().sendMessage(msg);
+        } else {
+            // Console
+            Bukkit.getConsoleSender().sendMessage(msg);
+            // Online admins only
+            Bukkit.getOnlinePlayers().stream()
+                    .filter(p -> p.hasPermission("aegisguard.admin"))
+                    .forEach(p -> p.sendMessage(msg));
+        }
     }
 
     /* -----------------------------
