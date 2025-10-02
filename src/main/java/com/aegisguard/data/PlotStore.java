@@ -4,7 +4,6 @@ import com.aegisguard.AegisGuard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -14,7 +13,7 @@ import java.util.*;
 
 /**
  * PlotStore
- * - Stores plots: owner, bounds, trusted
+ * - Stores plots: owner, bounds, trusted, flags
  * - Saves/loads from plots.yml with UUID + usernames
  */
 public class PlotStore {
@@ -42,6 +41,7 @@ public class PlotStore {
         private final int x1, z1, x2, z2;
         private final Set<UUID> trusted = new HashSet<>();
         private final Map<UUID, String> trustedNames = new HashMap<>();
+        private final Map<String, Boolean> flags = new HashMap<>();
 
         public Plot(UUID owner, String ownerName, String world, int x1, int z1, int x2, int z2) {
             this.owner = owner;
@@ -51,6 +51,14 @@ public class PlotStore {
             this.z1 = Math.min(z1, z2);
             this.x2 = Math.max(x1, x2);
             this.z2 = Math.max(z1, z2);
+
+            // Default protections ON
+            flags.put("pvp", true);
+            flags.put("containers", true);
+            flags.put("mobs", true);
+            flags.put("pets", true);
+            flags.put("entities", true);
+            flags.put("farm", true);
         }
 
         public UUID getOwner() { return owner; }
@@ -71,6 +79,21 @@ public class PlotStore {
             int x = loc.getBlockX();
             int z = loc.getBlockZ();
             return x >= x1 && x <= x2 && z >= z1 && z <= z2;
+        }
+
+        /* -----------------------------
+         * Flags
+         * ----------------------------- */
+        public boolean getFlag(String key, boolean def) {
+            return flags.getOrDefault(key, def);
+        }
+
+        public void setFlag(String key, boolean value) {
+            flags.put(key, value);
+        }
+
+        public Map<String, Boolean> getFlags() {
+            return flags;
         }
     }
 
@@ -97,6 +120,7 @@ public class PlotStore {
 
                 Plot plot = new Plot(owner, ownerName, world, x1, z1, x2, z2);
 
+                // Trusted players
                 if (data.isConfigurationSection(path + ".trusted")) {
                     for (String uuidStr : data.getConfigurationSection(path + ".trusted").getKeys(false)) {
                         UUID t = UUID.fromString(uuidStr);
@@ -105,6 +129,14 @@ public class PlotStore {
                         plot.getTrustedNames().put(t, tName);
                     }
                 }
+
+                // Flags
+                if (data.isConfigurationSection(path + ".flags")) {
+                    for (String flag : data.getConfigurationSection(path + ".flags").getKeys(false)) {
+                        plot.setFlag(flag, data.getBoolean(path + ".flags." + flag));
+                    }
+                }
+
                 plots.put(owner, plot);
             }
         }
@@ -126,13 +158,18 @@ public class PlotStore {
             data.set(path + ".x2", plot.getX2());
             data.set(path + ".z2", plot.getZ2());
 
+            // Trusted players
             for (UUID t : plot.getTrusted()) {
                 OfflinePlayer tp = Bukkit.getOfflinePlayer(t);
                 plot.getTrustedNames().put(t, tp.getName() != null ? tp.getName() : "Unknown");
             }
-
             for (UUID t : plot.getTrustedNames().keySet()) {
                 data.set(path + ".trusted." + t.toString(), plot.getTrustedNames().get(t));
+            }
+
+            // Flags
+            for (Map.Entry<String, Boolean> entry : plot.getFlags().entrySet()) {
+                data.set(path + ".flags." + entry.getKey(), entry.getValue());
             }
         }
 
