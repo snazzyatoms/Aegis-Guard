@@ -3,9 +3,11 @@ package com.aegisguard.gui;
 import com.aegisguard.AegisGuard;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -92,11 +94,23 @@ public class GUIManager {
         } else {
             // Per-player toggle
             boolean soundsEnabled = plugin.isSoundEnabled(player);
-            inv.setItem(11, createItem(
+            ItemStack soundItem = createItem(
                     soundsEnabled ? Material.NOTE_BLOCK : Material.BARRIER,
                     soundsEnabled ? plugin.msg().get("button_sounds_on") : plugin.msg().get("button_sounds_off"),
                     plugin.msg().getList("sounds_toggle_lore")
-            ));
+            );
+
+            // Add glow effect if enabled
+            if (soundsEnabled) {
+                ItemMeta meta = soundItem.getItemMeta();
+                if (meta != null) {
+                    meta.addEnchant(Enchantment.DURABILITY, 1, true);
+                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+                    soundItem.setItemMeta(meta);
+                }
+            }
+
+            inv.setItem(11, soundItem);
         }
 
         // Back
@@ -159,7 +173,7 @@ public class GUIManager {
 
             boolean globalEnabled = plugin.getConfig().getBoolean("sounds.global_enabled", true);
 
-            // Ignore clicks if globally disabled (button is just decorative)
+            // Ignore clicks if globally disabled (button is decorative only)
             if (!globalEnabled && type == Material.BARRIER) {
                 return;
             }
@@ -172,7 +186,7 @@ public class GUIManager {
                     plugin.saveConfig();
 
                     plugin.msg().send(player, !currentlyEnabled ? "sound_enabled" : "sound_disabled");
-                    openSettings(player); // refresh menu with new state
+                    openSettings(player); // refresh with new state
                 }
                 case ARROW -> openMain(player);
                 case BARRIER -> {
