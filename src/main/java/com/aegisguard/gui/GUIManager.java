@@ -2,7 +2,6 @@ package com.aegisguard.gui;
 
 import com.aegisguard.AegisGuard;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -16,6 +15,7 @@ import java.util.List;
  * GUIManager
  * - Guardian Codex main menu hub
  * - Access to claim tools, trusted players, and settings
+ * - Fully synced with messages.yml for customization
  */
 public class GUIManager {
 
@@ -31,45 +31,43 @@ public class GUIManager {
      * Open Main Menu
      * ----------------------------- */
     public void openMain(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 27, ChatColor.AQUA + "⚔ Guardian Codex ⚔");
+        String title = plugin.msg().get("menu_title");
+        Inventory inv = Bukkit.createInventory(null, 27, title);
 
         // Claim Land
-        inv.setItem(11, createItem(Material.LIGHTNING_ROD,
-                ChatColor.GREEN + "Claim Land",
-                List.of(
-                        ChatColor.GRAY + "Select and confirm a protected area.",
-                        ChatColor.DARK_GRAY + "⚡ Use your Aegis Scepter to mark land."
-                )));
+        inv.setItem(11, createItem(
+                Material.LIGHTNING_ROD,
+                plugin.msg().get("button_claim_land"),
+                plugin.msg().getList("claim_land_lore")
+        ));
 
         // Trusted Players
-        inv.setItem(13, createItem(Material.PLAYER_HEAD,
-                ChatColor.YELLOW + "Trusted Players",
-                List.of(
-                        ChatColor.GRAY + "Manage who can build in your claim.",
-                        ChatColor.DARK_GRAY + "✔ Add or remove trusted players"
-                )));
+        inv.setItem(13, createItem(
+                Material.PLAYER_HEAD,
+                plugin.msg().get("button_trusted_players"),
+                plugin.msg().getList("trusted_players_lore")
+        ));
 
         // Settings
-        inv.setItem(15, createItem(Material.REDSTONE_COMPARATOR,
-                ChatColor.BLUE + "Settings",
-                List.of(
-                        ChatColor.GRAY + "Toggle protections & preferences.",
-                        ChatColor.DARK_GRAY + "(PvP, containers, mob spawning)"
-                )));
+        inv.setItem(15, createItem(
+                Material.REDSTONE_COMPARATOR,
+                plugin.msg().get("button_settings"),
+                plugin.msg().getList("settings_lore")
+        ));
 
         // Info & Guidebook (slot 22)
-        inv.setItem(22, createItem(Material.WRITABLE_BOOK,
-                ChatColor.GOLD + "📖 Info & Guide",
-                List.of(
-                        ChatColor.GRAY + "This menu is your all-in-one land protection hub.",
-                        ChatColor.GRAY + "Use it to claim land, manage trusted players,",
-                        ChatColor.GRAY + "and configure protections."
-                )));
+        inv.setItem(22, createItem(
+                Material.WRITABLE_BOOK,
+                plugin.msg().get("button_info"),
+                plugin.msg().getList("info_lore")
+        ));
 
         // Exit (slot 26)
-        inv.setItem(26, createItem(Material.BARRIER,
-                ChatColor.RED + "Exit",
-                List.of(ChatColor.GRAY + "Close the Guardian Codex")));
+        inv.setItem(26, createItem(
+                Material.BARRIER,
+                plugin.msg().get("button_exit"),
+                plugin.msg().getList("exit_lore")
+        ));
 
         player.openInventory(inv);
     }
@@ -81,8 +79,8 @@ public class GUIManager {
         if (!(e.getWhoClicked() instanceof Player player)) return;
         if (e.getClickedInventory() == null) return;
 
-        String title = ChatColor.stripColor(e.getView().getTitle());
-        if (!title.equalsIgnoreCase("⚔ Guardian Codex ⚔")) return;
+        String title = e.getView().getTitle();
+        if (!title.equals(plugin.msg().get("menu_title"))) return;
 
         e.setCancelled(true);
 
@@ -95,8 +93,8 @@ public class GUIManager {
                 plugin.selection().confirmClaim(player);
             }
             case PLAYER_HEAD -> trustedGUI.open(player);
-            case REDSTONE_COMPARATOR -> player.sendMessage(ChatColor.BLUE + "⚙ Settings GUI coming soon!");
-            case WRITABLE_BOOK -> player.sendMessage(ChatColor.GOLD + "📖 The Guardian Codex explains everything about land protection.");
+            case REDSTONE_COMPARATOR -> player.sendMessage(plugin.msg().get("settings_coming_soon"));
+            case WRITABLE_BOOK -> player.sendMessage(plugin.msg().get("info_message"));
             case BARRIER -> player.closeInventory();
         }
     }
