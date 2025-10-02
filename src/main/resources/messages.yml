@@ -47,18 +47,43 @@ trusted_self: "&c❌ You cannot trust yourself."
 trusted_already: "&c❌ {PLAYER} is already trusted."
 not_trusted: "&c❌ {PLAYER} is not trusted in your plot."
 
-# GUI
+# GUI Titles
 menu_title: "&b⚔ Guardian Codex ⚔"
 trusted_menu_title: "&eTrusted Players"
 add_trusted_title: "&aAdd Trusted Player"
 
+# GUI Buttons
+button_claim_land: "&aClaim Land"
+button_trusted_players: "&eTrusted Players"
+button_settings: "&9Settings"
+button_info: "&6📖 Info & Guide"
 button_add_trusted: "&aAdd Trusted"
 button_remove_trusted: "&cRemove Trusted"
 button_back: "&eBack"
 button_exit: "&cExit"
-button_info: "&6📖 Info & Guide"
 
-# Example: multi-line lore for trusted menu
+# GUI Lores
+claim_land_lore:
+  - "&7Select and confirm a protected area."
+  - "&8⚡ Use your Aegis Scepter to mark land."
+
+trusted_players_lore:
+  - "&7Manage who can build in your claim."
+  - "&8✔ Add or remove trusted players."
+
+settings_lore:
+  - "&7Toggle protections & preferences."
+  - "&8(PvP, containers, mob spawning)"
+
+info_lore:
+  - "&7This menu is your all-in-one land protection hub."
+  - "&7Claim land, manage trusted players,"
+  - "&7and configure protections."
+
+exit_lore:
+  - "&7Close the Guardian Codex"
+
+# Trusted Players Lore
 trusted_menu_lore:
   - "&7Trusted players can build and interact"
   - "&7but cannot unclaim or transfer land."
@@ -77,6 +102,10 @@ info_trusted_lore:
   - "&a✔ Build & interact"
   - "&c✖ Not unclaim"
   - "&c✖ Not transfer ownership"
+
+# Misc
+settings_coming_soon: "&9⚙ Settings GUI coming soon!"
+info_message: "&6📖 The Guardian Codex explains everything about land protection."
 
 # Effects
 claim_effect: "&b⚡ Zeus blesses your land! A claim has been created."
