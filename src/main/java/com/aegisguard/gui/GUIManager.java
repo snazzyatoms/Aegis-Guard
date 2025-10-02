@@ -18,7 +18,7 @@ import java.util.List;
  * - Access to claim tools, trusted players, and settings
  * - Fully synced with messages.yml for customization
  * - Player & claim-based protection toggles
- * - Admin controls visible only to admins
+ * - Admin-only options appear if the player has aegisguard.admin
  */
 public class GUIManager {
 
@@ -142,20 +142,27 @@ public class GUIManager {
                 plugin.msg().getList("farm_toggle_lore")
         ));
 
-        // --- Admin Toggles (visible only to admins) ---
+        // --- Admin Toggles (only visible to admins) ---
         if (player.hasPermission("aegisguard.admin")) {
             boolean autoRemove = plugin.getConfig().getBoolean("admin.auto_remove_banned", false);
-            inv.setItem(20, createItem(
-                    Material.COMMAND_BLOCK,
-                    autoRemove ? "§aAuto-Remove Banned: ON" : "§cAuto-Remove Banned: OFF",
-                    List.of("§7Automatically removes plots of banned players", autoRemove ? "§aCurrently Enabled" : "§cCurrently Disabled")
+            inv.setItem(28, createItem(
+                    autoRemove ? Material.TNT : Material.GUNPOWDER,
+                    plugin.msg().get("button_admin_auto_remove"),
+                    plugin.msg().getList("admin_auto_remove_lore")
             ));
 
-            boolean bypass = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
-            inv.setItem(21, createItem(
-                    Material.BEDROCK,
-                    bypass ? "§aBypass Claim Limit: ON" : "§cBypass Claim Limit: OFF",
-                    List.of("§7Admins bypass claim limits", bypass ? "§aCurrently Enabled" : "§cCurrently Disabled")
+            boolean bypassLimit = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
+            inv.setItem(29, createItem(
+                    bypassLimit ? Material.NETHER_STAR : Material.REDSTONE,
+                    plugin.msg().get("button_admin_bypass_limit"),
+                    plugin.msg().getList("admin_bypass_limit_lore")
+            ));
+
+            boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false);
+            inv.setItem(30, createItem(
+                    broadcast ? Material.BEACON : Material.ENDER_EYE,
+                    plugin.msg().get("button_admin_broadcast"),
+                    plugin.msg().getList("admin_broadcast_lore")
             ));
         }
 
@@ -251,34 +258,38 @@ public class GUIManager {
                     plugin.protection().toggleFarmProtection(player);
                     openSettings(player);
                 }
-                case COMMAND_BLOCK -> {
+
+                // Admin controls
+                case TNT, GUNPOWDER -> {
                     if (player.hasPermission("aegisguard.admin")) {
-                        boolean current = plugin.getConfig().getBoolean("admin.auto_remove_banned", false);
-                        plugin.getConfig().set("admin.auto_remove_banned", !current);
+                        boolean autoRemove = plugin.getConfig().getBoolean("admin.auto_remove_banned", false);
+                        plugin.getConfig().set("admin.auto_remove_banned", !autoRemove);
                         plugin.saveConfig();
-                        plugin.msg().send(player, !current ? "admin_auto_remove_enabled" : "admin_auto_remove_disabled");
-                        if (!current) {
-                            plugin.sounds().playMenuFlip(player);
-                        } else {
-                            plugin.sounds().playMenuClose(player);
-                        }
+                        player.sendMessage(plugin.msg().get("admin_action_logged")
+                                .replace("{PLAYER}", player.getName()));
                         openSettings(player);
                     }
                 }
-                case BEDROCK -> {
+                case NETHER_STAR, REDSTONE -> {
                     if (player.hasPermission("aegisguard.admin")) {
-                        boolean current = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
-                        plugin.getConfig().set("admin.bypass_claim_limit", !current);
+                        boolean bypass = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
+                        plugin.getConfig().set("admin.bypass_claim_limit", !bypass);
                         plugin.saveConfig();
-                        plugin.msg().send(player, !current ? "admin_bypass_enabled" : "admin_bypass_disabled");
-                        if (!current) {
-                            plugin.sounds().playMenuFlip(player);
-                        } else {
-                            plugin.sounds().playMenuClose(player);
-                        }
+                        player.sendMessage(plugin.msg().get("admin_action_logged")
+                                .replace("{PLAYER}", player.getName()));
                         openSettings(player);
                     }
                 }
+                case BEACON, ENDER_EYE -> {
+                    if (player.hasPermission("aegisguard.admin")) {
+                        boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false);
+                        plugin.getConfig().set("admin.broadcast_admin_actions", !broadcast);
+                        plugin.saveConfig();
+                        player.sendMessage(plugin.msg().get(broadcast ? "admin_broadcast_disabled" : "admin_broadcast_enabled"));
+                        openSettings(player);
+                    }
+                }
+
                 case ARROW -> openMain(player);
                 case BARRIER -> {
                     player.closeInventory();
@@ -297,7 +308,7 @@ public class GUIManager {
         if (meta != null) {
             meta.setDisplayName(name);
             if (lore != null) meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); // no attributes shown
             item.setItemMeta(meta);
         }
         return item;
