@@ -89,6 +89,10 @@ button_entity_off: "&c🛡 Entity Protection: OFF"
 button_farm_on: "&a🌾 Farm Protection: ON"
 button_farm_off: "&c🌾 Farm Protection: OFF"
 
+# Admin Buttons
+button_admin_auto_remove: "&c[Admin] Auto-Remove Banned Players"
+button_admin_bypass_limit: "&c[Admin] Bypass Claim Limit"
+
 # GUI Lores
 claim_land_lore:
   - "&7Select and confirm a protected area."
@@ -102,6 +106,7 @@ settings_lore:
   - "&7Toggle protections & preferences."
   - "&8(PvP, containers, mob spawning, pets, etc.)"
   - "&8Includes personal sound options"
+  - "&cAdmins see extra options here"
 
 info_lore:
   - "&7This menu is your all-in-one land protection hub."
@@ -110,6 +115,17 @@ info_lore:
 
 exit_lore:
   - "&7Close the Guardian Codex"
+
+# Admin Lore
+admin_auto_remove_lore:
+  - "&7Toggle automatic removal of plots"
+  - "&7when a player is banned."
+  - "&cRecommended: Keep OFF unless needed."
+
+admin_bypass_limit_lore:
+  - "&7Toggle whether admins bypass claim limits."
+  - "&8Useful for testing/debugging."
+  - "&cDefault: OFF for balance."
 
 # Trusted Players Lore
 trusted_menu_lore:
