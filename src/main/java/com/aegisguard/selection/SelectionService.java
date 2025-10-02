@@ -22,6 +22,7 @@ import java.util.UUID;
  * SelectionService
  * - Handles Aegis Scepter interactions
  * - Selects corners and creates plots
+ * - Integrates VaultHook for optional claim costs
  */
 public class SelectionService implements Listener {
 
@@ -77,6 +78,14 @@ public class SelectionService implements Listener {
             return;
         }
 
+        // Vault cost check
+        double cost = plugin.getConfig().getDouble("claim.cost", 0.0);
+        if (cost > 0 && !plugin.vault().charge(p, cost)) {
+            p.sendMessage(ChatColor.RED + "❌ You need at least $" + cost + " to claim land.");
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
+            return;
+        }
+
         Location c1 = corner1.get(id);
         Location c2 = corner2.get(id);
 
@@ -84,6 +93,9 @@ public class SelectionService implements Listener {
         plugin.store().createPlot(id, c1, c2);
 
         p.sendMessage(ChatColor.GREEN + "✔ Plot created successfully!");
+        if (cost > 0) {
+            p.sendMessage(ChatColor.YELLOW + "💰 Cost: $" + cost + " has been deducted.");
+        }
         p.playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 0.7f);
 
         // optional lightning effect
