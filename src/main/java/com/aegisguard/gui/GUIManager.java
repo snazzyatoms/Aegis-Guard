@@ -14,16 +14,17 @@ import java.util.List;
 
 /**
  * GUIManager
- * - Handles opening GUIs for players
- * - Main menu with claim tools & trusted players
- * - Lightweight design (no crazy routing)
+ * - Main menu hub for AegisGuard
+ * - Calls TrustedGUI for trusted players management
  */
 public class GUIManager {
 
     private final AegisGuard plugin;
+    private final TrustedGUI trustedGUI;
 
     public GUIManager(AegisGuard plugin) {
         this.plugin = plugin;
+        this.trustedGUI = new TrustedGUI(plugin);
     }
 
     /* -----------------------------
@@ -42,7 +43,7 @@ public class GUIManager {
                 ChatColor.YELLOW + "Trusted Players",
                 List.of(ChatColor.GRAY + "Manage who can build in your claim")));
 
-        // Settings / Config
+        // Settings
         inv.setItem(15, createItem(Material.BOOK,
                 ChatColor.BLUE + "Settings",
                 List.of(ChatColor.GRAY + "Toggle protections, preferences, etc.")));
@@ -56,14 +57,14 @@ public class GUIManager {
     }
 
     /* -----------------------------
-     * Handle Clicks
+     * Handle Main Menu Clicks
      * ----------------------------- */
     public void handleClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player player)) return;
         if (e.getClickedInventory() == null) return;
 
-        String title = e.getView().getTitle();
-        if (!ChatColor.stripColor(title).equalsIgnoreCase("Aegis Menu")) return;
+        String title = ChatColor.stripColor(e.getView().getTitle());
+        if (!title.equalsIgnoreCase("Aegis Menu")) return;
 
         e.setCancelled(true);
 
@@ -72,7 +73,7 @@ public class GUIManager {
 
         switch (type) {
             case LIGHTNING_ROD -> player.sendMessage(ChatColor.GREEN + "⚡ Claim tool selected!");
-            case PLAYER_HEAD -> player.sendMessage(ChatColor.YELLOW + "👥 Opening Trusted Players...");
+            case PLAYER_HEAD -> trustedGUI.open(player); // open trusted players submenu
             case BOOK -> player.sendMessage(ChatColor.BLUE + "⚙ Settings coming soon!");
             case BARRIER -> player.closeInventory();
         }
