@@ -92,6 +92,7 @@ button_farm_off: "&c🌾 Farm Protection: OFF"
 # Admin Buttons
 button_admin_auto_remove: "&c[Admin] Auto-Remove Banned Players"
 button_admin_bypass_limit: "&c[Admin] Bypass Claim Limit"
+button_admin_broadcast: "&c[Admin] Broadcast Admin Actions"
 
 # GUI Lores
 claim_land_lore:
@@ -126,6 +127,11 @@ admin_bypass_limit_lore:
   - "&7Toggle whether admins bypass claim limits."
   - "&8Useful for testing/debugging."
   - "&cDefault: OFF for balance."
+
+admin_broadcast_lore:
+  - "&7Toggle whether admin actions"
+  - "&7are broadcast to all players."
+  - "&cDefault: OFF (admin-only visibility)."
 
 # Trusted Players Lore
 trusted_menu_lore:
@@ -221,9 +227,5 @@ admin_bypass_limit: "&e⚠ [Admin] You bypassed the claim limit."
 admin_removed_banned: "&c✔ [Admin] Removed all plots owned by banned player {PLAYER}."
 admin_removed_banned_broadcast: "&c⚠ All plots owned by banned player {PLAYER} have been removed."
 admin_action_logged: "&7[Log] {PLAYER} performed an admin action."
-
-# Toggle Feedback
-admin_auto_remove_enabled: "&a✔ Auto-remove of banned players' plots is now ENABLED."
-admin_auto_remove_disabled: "&c❌ Auto-remove of banned players' plots is now DISABLED."
-admin_bypass_enabled: "&a✔ Admins now BYPASS claim limits."
-admin_bypass_disabled: "&c❌ Admins must respect claim limits."
+admin_broadcast_enabled: "&a✔ Admin actions are now broadcast to ALL players."
+admin_broadcast_disabled: "&c❌ Admin actions are now visible to admins & console only."
