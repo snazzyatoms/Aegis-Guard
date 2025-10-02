@@ -1,8 +1,8 @@
-main: com.aegisguard.AegisGuard
 package com.aegisguard;
 
 import com.aegisguard.config.AGConfig;
 import com.aegisguard.data.PlotStore;
+import com.aegisguard.economy.VaultHook;
 import com.aegisguard.gui.GUIListener;
 import com.aegisguard.gui.GUIManager;
 import com.aegisguard.protection.ProtectionManager;
@@ -39,6 +39,7 @@ public class AegisGuard extends JavaPlugin {
     private GUIManager gui;
     private ProtectionManager protection;
     private SelectionService selection;
+    private VaultHook vault;
 
     /* -----------------------------
      * Public Getters
@@ -48,6 +49,7 @@ public class AegisGuard extends JavaPlugin {
     public GUIManager gui() { return gui; }
     public ProtectionManager protection() { return protection; }
     public SelectionService selection() { return selection; }
+    public VaultHook vault() { return vault; }
 
     /* -----------------------------
      * Lifecycle
@@ -64,6 +66,7 @@ public class AegisGuard extends JavaPlugin {
         this.selection   = new SelectionService(this);
         this.gui         = new GUIManager(this);
         this.protection  = new ProtectionManager(this);
+        this.vault       = new VaultHook(this);
 
         // Register events
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
