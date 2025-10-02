@@ -90,6 +90,7 @@ public class TrustedGUI {
         ));
 
         owner.openInventory(inv);
+        owner.playSound(owner.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // 📖 page flip
     }
 
     /* -----------------------------
@@ -121,6 +122,7 @@ public class TrustedGUI {
         inv.setItem(53, GUIManager.icon(Material.BARRIER, plugin.msg().get("button_exit")));
 
         owner.openInventory(inv);
+        owner.playSound(owner.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // 📖 page flip
     }
 
     /* -----------------------------
@@ -129,7 +131,7 @@ public class TrustedGUI {
     private void openConfirmMenu(Player player, Plot plot, OfflinePlayer target) {
         Inventory confirm = Bukkit.createInventory(null, 27, "Confirm Remove: " + target.getName());
 
-        // Player head in center
+        // Player head
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
         if (meta != null) {
@@ -140,13 +142,11 @@ public class TrustedGUI {
         }
         confirm.setItem(13, head);
 
-        // Confirm button
         confirm.setItem(11, GUIManager.icon(Material.GREEN_WOOL, "§aConfirm Remove"));
-
-        // Cancel button
         confirm.setItem(15, GUIManager.icon(Material.RED_WOOL, "§cCancel"));
 
         player.openInventory(confirm);
+        player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // 📖 page flip
     }
 
     /* -----------------------------
@@ -166,12 +166,13 @@ public class TrustedGUI {
         String title = e.getView().getTitle();
         Material type = e.getCurrentItem().getType();
 
-        // Trusted Players main menu
+        // Trusted Players menu
         if (title.equals(plugin.msg().get("trusted_menu_title"))) {
             switch (type) {
                 case EMERALD -> {
                     String addTitle = plugin.msg().get("add_trusted_title");
                     Inventory addMenu = Bukkit.createInventory(null, 54, addTitle);
+
                     int slot = 0;
                     for (Player online : Bukkit.getOnlinePlayers()) {
                         if (slot >= 54) break;
@@ -188,14 +189,25 @@ public class TrustedGUI {
                         addMenu.setItem(slot++, head);
                     }
                     player.openInventory(addMenu);
+                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // page flip
                 }
                 case BARRIER -> openRemoveMenu(player, plot);
-                case ARROW -> plugin.gui().openMain(player);
-                case WRITABLE_BOOK -> plugin.msg().getList("info_trusted_lore").forEach(player::sendMessage);
+                case ARROW -> {
+                    plugin.gui().openMain(player);
+                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // page flip
+                }
+                case WRITABLE_BOOK -> {
+                    plugin.msg().getList("info_trusted_lore").forEach(player::sendMessage);
+                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.2f); // info page turn
+                }
+                case Material.BARRIER -> {
+                    player.closeInventory();
+                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PUT, 1f, 0.8f); // book closing
+                }
             }
         }
 
-        // Add Trusted Player submenu
+        // Add Trusted Player
         else if (title.equals(plugin.msg().get("add_trusted_title")) && type == Material.PLAYER_HEAD) {
             ItemStack head = e.getCurrentItem();
             if (head.getItemMeta() instanceof SkullMeta meta) {
@@ -234,20 +246,18 @@ public class TrustedGUI {
         // Confirmation Menu
         else if (title.startsWith("Confirm Remove:")) {
             if (type == Material.GREEN_WOOL) {
-                // Confirm removal
                 ItemStack targetHead = e.getInventory().getItem(13);
                 if (targetHead != null && targetHead.getItemMeta() instanceof SkullMeta meta) {
                     OfflinePlayer target = meta.getOwningPlayer();
                     if (target != null && plot.isTrusted(target.getUniqueId())) {
                         plot.removeTrusted(target.getUniqueId());
                         plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1f, 1f);
+                        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1f, 1f); // confirm = anvil
                         openRemoveMenu(player, plot);
                     }
                 }
             } else if (type == Material.RED_WOOL) {
-                // Cancel → back to remove menu
-                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f); // cancel = bass
                 openRemoveMenu(player, plot);
             }
         }
