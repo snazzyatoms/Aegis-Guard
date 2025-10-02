@@ -198,6 +198,10 @@ info_message: "&6📖 The Guardian Codex explains everything about land protecti
 # Effects
 claim_effect: "&b⚡ Zeus blesses your land! A claim has been created."
 
-# Admin (admin-only messages)
+# ======================================
+# Admin Messages
+# ======================================
 admin_bypass_limit: "&e⚠ [Admin] You bypassed the claim limit."
-admin_removed_banned: "&c✔ [Admin] Removed plots of banned player {PLAYER}."
+admin_removed_banned: "&c✔ [Admin] Removed all plots owned by banned player {PLAYER}."
+admin_removed_banned_broadcast: "&c⚠ All plots owned by banned player {PLAYER} have been removed."
+admin_action_logged: "&7[Log] {PLAYER} performed an admin action."
