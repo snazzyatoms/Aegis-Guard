@@ -46,29 +46,80 @@ public class TrustedGUI {
             if (meta != null) {
                 meta.setOwningPlayer(trusted);
                 String playerName = trusted.getName() != null ? trusted.getName() : "Unknown";
-                meta.setDisplayName("§a" + playerName);
+                meta.setDisplayName(plugin.msg().color("&a" + playerName));
                 meta.setLore(plugin.msg().getList("trusted_menu_lore"));
                 head.setItemMeta(meta);
             }
             inv.setItem(slot++, head);
         }
 
-        // Buttons
-        inv.setItem(45, GUIManager.icon(Material.EMERALD,
+        // Add Trusted
+        inv.setItem(45, GUIManager.icon(
+                Material.EMERALD,
                 plugin.msg().get("button_add_trusted"),
-                plugin.msg().getList("add_trusted_lore")));
+                plugin.msg().getList("add_trusted_lore")
+        ));
 
-        inv.setItem(46, GUIManager.icon(Material.BARRIER,
+        // Remove Trusted
+        inv.setItem(46, GUIManager.icon(
+                Material.BARRIER,
                 plugin.msg().get("button_remove_trusted"),
-                plugin.msg().getList("remove_trusted_lore")));
+                plugin.msg().getList("remove_trusted_lore")
+        ));
 
-        inv.setItem(52, GUIManager.icon(Material.ARROW,
+        // Info & Guide
+        inv.setItem(51, GUIManager.icon(
+                Material.WRITABLE_BOOK,
+                plugin.msg().get("button_info"),
+                plugin.msg().getList("info_trusted_lore")
+        ));
+
+        // Back
+        inv.setItem(52, GUIManager.icon(
+                Material.ARROW,
                 plugin.msg().get("button_back"),
-                List.of(plugin.msg().color("&7" + plugin.msg().get("menu_title")))));
+                List.of(plugin.msg().color("&7" + plugin.msg().get("menu_title")))
+        ));
 
-        inv.setItem(53, GUIManager.icon(Material.BARRIER,
+        // Exit
+        inv.setItem(53, GUIManager.icon(
+                Material.BARRIER,
                 plugin.msg().get("button_exit"),
-                plugin.msg().getList("exit_lore")));
+                plugin.msg().getList("exit_lore")
+        ));
+
+        owner.openInventory(inv);
+    }
+
+    /* -----------------------------
+     * Open Remove Trusted Menu
+     * ----------------------------- */
+    private void openRemoveMenu(Player owner, Plot plot) {
+        String title = plugin.msg().get("remove_trusted_title");
+        Inventory inv = Bukkit.createInventory(null, 54, title);
+
+        int slot = 0;
+        for (UUID trustedId : plot.getTrusted()) {
+            if (slot >= 54) break;
+
+            OfflinePlayer trusted = Bukkit.getOfflinePlayer(trustedId);
+            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+            SkullMeta meta = (SkullMeta) head.getItemMeta();
+
+            if (meta != null) {
+                meta.setOwningPlayer(trusted);
+                String playerName = trusted.getName() != null ? trusted.getName() : "Unknown";
+                meta.setDisplayName(plugin.msg().color("&c" + playerName));
+                meta.setLore(plugin.msg().getList("remove_trusted_lore"));
+                head.setItemMeta(meta);
+            }
+            inv.setItem(slot++, head);
+        }
+
+        // Back button
+        inv.setItem(52, GUIManager.icon(Material.ARROW, plugin.msg().get("button_back")));
+        // Exit button
+        inv.setItem(53, GUIManager.icon(Material.BARRIER, plugin.msg().get("button_exit")));
 
         owner.openInventory(inv);
     }
@@ -78,23 +129,23 @@ public class TrustedGUI {
      * ----------------------------- */
     public void handleClick(Player player, InventoryClickEvent e) {
         e.setCancelled(true);
-
         if (e.getCurrentItem() == null) return;
-        Material type = e.getCurrentItem().getType();
 
-        String title = e.getView().getTitle();
         Plot plot = plugin.store().getPlot(player.getUniqueId());
-
         if (plot == null) {
-            plugin.msg().send(player, "no_plot_here");
             player.closeInventory();
+            plugin.msg().send(player, "no_plot_here");
             return;
         }
+
+        String title = e.getView().getTitle();
+        Material type = e.getCurrentItem().getType();
 
         // Trusted Players main menu
         if (title.equals(plugin.msg().get("trusted_menu_title"))) {
             switch (type) {
-                case EMERALD -> { // Add Trusted submenu
+                case EMERALD -> {
+                    // Add Trusted submenu
                     String addTitle = plugin.msg().get("add_trusted_title");
                     Inventory addMenu = Bukkit.createInventory(null, 54, addTitle);
                     int slot = 0;
@@ -114,37 +165,16 @@ public class TrustedGUI {
                     }
                     player.openInventory(addMenu);
                 }
-
-                case BARRIER -> { // Remove Trusted submenu
-                    String removeTitle = plugin.msg().get("remove_trusted_title");
-                    Inventory removeMenu = Bukkit.createInventory(null, 54, removeTitle);
-                    int slot = 0;
-                    for (UUID trustedId : plot.getTrusted()) {
-                        if (slot >= 54) break;
-                        OfflinePlayer trusted = Bukkit.getOfflinePlayer(trustedId);
-
-                        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-                        SkullMeta meta = (SkullMeta) head.getItemMeta();
-                        if (meta != null) {
-                            meta.setOwningPlayer(trusted);
-                            meta.setDisplayName(plugin.msg().color("&c" + (trusted.getName() != null ? trusted.getName() : "Unknown")));
-                            meta.setLore(plugin.msg().getList("remove_trusted_lore"));
-                            head.setItemMeta(meta);
-                        }
-                        removeMenu.setItem(slot++, head);
-                    }
-                    player.openInventory(removeMenu);
-                }
-
+                case BARRIER -> openRemoveMenu(player, plot);
                 case ARROW -> plugin.gui().openMain(player);
-                case BARRIER -> player.closeInventory();
+                case WRITABLE_BOOK -> plugin.msg().getList("info_trusted_lore").forEach(player::sendMessage);
             }
         }
 
-        // Add Trusted submenu
+        // Add Trusted Player submenu
         else if (title.equals(plugin.msg().get("add_trusted_title")) && type == Material.PLAYER_HEAD) {
             ItemStack head = e.getCurrentItem();
-            if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
+            if (head.getItemMeta() instanceof SkullMeta meta) {
                 OfflinePlayer target = meta.getOwningPlayer();
                 if (target != null) {
                     if (target.getUniqueId().equals(player.getUniqueId())) {
@@ -168,15 +198,12 @@ public class TrustedGUI {
         // Remove Trusted submenu
         else if (title.equals(plugin.msg().get("remove_trusted_title")) && type == Material.PLAYER_HEAD) {
             ItemStack head = e.getCurrentItem();
-            if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
+            if (head.getItemMeta() instanceof SkullMeta meta) {
                 OfflinePlayer target = meta.getOwningPlayer();
                 if (target != null && plot.isTrusted(target.getUniqueId())) {
                     plot.removeTrusted(target.getUniqueId());
                     plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                    open(player);
-                } else {
-                    plugin.msg().send(player, "not_trusted");
-                    player.sendMessage("§7➡ If the player is offline, you can also type: §e/aegis untrust <player>");
+                    openRemoveMenu(player, plot); // refresh after removal
                 }
             }
         }
