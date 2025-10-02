@@ -1,6 +1,7 @@
 package com.aegisguard.gui;
 
 import com.aegisguard.AegisGuard;
+import com.aegisguard.data.PlotStore;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -11,14 +12,14 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * TrustedGUI
  * - Shows trusted players with heads
- * - Allows add/remove management
+ * - Username only in GUI (clean for players)
+ * - UUID + username still saved in YAML (admin-friendly)
  */
 public class TrustedGUI {
 
@@ -32,24 +33,31 @@ public class TrustedGUI {
      * Open Trusted Players Menu
      * ----------------------------- */
     public void open(Player player) {
-        List<UUID> trusted = plugin.store().getTrusted(player.getUniqueId());
+        PlotStore.Plot plot = plugin.store().getPlot(player.getUniqueId());
+
+        if (plot == null) {
+            player.sendMessage(ChatColor.RED + "❌ You do not own a plot.");
+            return;
+        }
+
         Inventory inv = Bukkit.createInventory(null, 54, ChatColor.YELLOW + "Trusted Players");
 
         int i = 0;
-        for (UUID uuid : trusted) {
+        for (UUID uuid : plot.getTrusted()) {
             if (i >= 45) break; // max 45 heads per page
             OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
             inv.setItem(i, createHead(offline));
             i++;
         }
 
-        // Add trusted
+        // Add trusted (info reminder)
         inv.setItem(48, createButton(Material.EMERALD, ChatColor.GREEN + "Add Trusted",
-                List.of(ChatColor.GRAY + "Right-click a player with scepter to trust")));
+                List.of(ChatColor.GRAY + "Use your Aegis Scepter",
+                        ChatColor.GRAY + "Right-click a player to trust them.")));
 
-        // Remove trusted
+        // Remove trusted (instructions)
         inv.setItem(49, createButton(Material.REDSTONE, ChatColor.RED + "Remove Trusted",
-                List.of(ChatColor.GRAY + "Click a head to remove trust")));
+                List.of(ChatColor.GRAY + "Click a head to remove trust.")));
 
         // Back button
         inv.setItem(53, createButton(Material.ARROW, ChatColor.RED + "Back",
@@ -66,7 +74,6 @@ public class TrustedGUI {
         if (!title.equalsIgnoreCase("Trusted Players")) return;
 
         e.setCancelled(true);
-
         if (e.getCurrentItem() == null) return;
 
         switch (e.getCurrentItem().getType()) {
@@ -79,7 +86,7 @@ public class TrustedGUI {
                     open(player);
                 }
             }
-            case EMERALD -> player.sendMessage(ChatColor.GREEN + "✔ Use your Aegis Scepter to trust players!");
+            case EMERALD -> player.sendMessage(ChatColor.GREEN + "✔ Right-click a player with your Aegis Scepter to trust them.");
             case REDSTONE -> player.sendMessage(ChatColor.RED + "❌ Click a player head to remove trust.");
             case ARROW -> plugin.gui().openMain(player);
         }
@@ -94,7 +101,7 @@ public class TrustedGUI {
         if (meta != null) {
             meta.setOwningPlayer(offline);
             meta.setDisplayName(ChatColor.YELLOW + offline.getName());
-            meta.setLore(List.of(ChatColor.GRAY + "Trusted Member"));
+            meta.setLore(List.of(ChatColor.GRAY + "Trusted Member")); // Username only in GUI
             head.setItemMeta(meta);
         }
         return head;
