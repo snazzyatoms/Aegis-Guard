@@ -61,7 +61,7 @@ public class TrustedGUI {
                 ChatColor.GREEN + "Add Trusted",
                 List.of(ChatColor.GRAY + "Pick an online player to trust.")));
 
-        // Remove Trusted (not strictly needed if heads remove directly)
+        // Remove Trusted
         inv.setItem(46, GUIManager.icon(Material.BARRIER,
                 ChatColor.RED + "Remove Trusted",
                 List.of(ChatColor.GRAY + "Click on a head to remove.")));
@@ -96,53 +96,82 @@ public class TrustedGUI {
         if (e.getCurrentItem() == null) return;
         Material type = e.getCurrentItem().getType();
 
+        String title = ChatColor.stripColor(e.getView().getTitle());
         Plot plot = plugin.store().getPlot(player.getUniqueId());
+
+        // No plot
         if (plot == null) {
             plugin.msg().send(player, "no_plot_here");
             player.closeInventory();
             return;
         }
 
-        // Handle clicks
-        switch (type) {
-            case PLAYER_HEAD -> {
-                // Remove trusted player
-                ItemStack head = e.getCurrentItem();
-                if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
-                    OfflinePlayer target = meta.getOwningPlayer();
-                    if (target != null && plot.isTrusted(target.getUniqueId())) {
-                        plot.removeTrusted(target.getUniqueId());
-                        plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                        open(player); // refresh GUI
+        // Trusted Players menu
+        if (title.contains("Trusted Players")) {
+            switch (type) {
+                case PLAYER_HEAD -> {
+                    // Remove trusted player
+                    ItemStack head = e.getCurrentItem();
+                    if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
+                        OfflinePlayer target = meta.getOwningPlayer();
+                        if (target != null && plot.isTrusted(target.getUniqueId())) {
+                            plot.removeTrusted(target.getUniqueId());
+                            plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
+                            open(player); // refresh GUI
+                        }
                     }
                 }
-            }
-            case EMERALD -> {
-                // Add trusted submenu: show online players
-                Inventory addMenu = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Add Trusted Player");
-                int slot = 0;
-                for (Player online : Bukkit.getOnlinePlayers()) {
-                    if (slot >= 54) break;
-                    if (online.getUniqueId().equals(player.getUniqueId())) continue; // skip self
+                case EMERALD -> {
+                    // Open Add Trusted submenu
+                    Inventory addMenu = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Add Trusted Player");
+                    int slot = 0;
+                    for (Player online : Bukkit.getOnlinePlayers()) {
+                        if (slot >= 54) break;
+                        if (online.getUniqueId().equals(player.getUniqueId())) continue; // skip self
 
-                    ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-                    SkullMeta meta = (SkullMeta) head.getItemMeta();
-                    if (meta != null) {
-                        meta.setOwningPlayer(online);
-                        meta.setDisplayName(ChatColor.YELLOW + online.getName());
-                        meta.setLore(List.of(ChatColor.GRAY + "Click to trust this player"));
-                        head.setItemMeta(meta);
+                        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+                        SkullMeta meta = (SkullMeta) head.getItemMeta();
+                        if (meta != null) {
+                            meta.setOwningPlayer(online);
+                            meta.setDisplayName(ChatColor.YELLOW + online.getName());
+                            meta.setLore(List.of(ChatColor.GRAY + "Click to trust this player"));
+                            head.setItemMeta(meta);
+                        }
+                        addMenu.setItem(slot++, head);
                     }
-                    addMenu.setItem(slot++, head);
+                    player.openInventory(addMenu);
                 }
-                player.openInventory(addMenu);
+                case ARROW -> plugin.gui().openMain(player); // Back
+                case BARRIER -> player.closeInventory();     // Exit
+                case WRITABLE_BOOK -> {
+                    player.sendMessage(ChatColor.GOLD + "📖 Trusted Players Guide:");
+                    player.sendMessage(ChatColor.GRAY + "Trusted players can build in your claim,");
+                    player.sendMessage(ChatColor.GRAY + "but cannot unclaim or transfer ownership.");
+                }
             }
-            case ARROW -> plugin.gui().openMain(player); // Back
-            case BARRIER -> player.closeInventory();     // Exit
-            case WRITABLE_BOOK -> {
-                player.sendMessage(ChatColor.GOLD + "📖 Trusted Players Guide:");
-                player.sendMessage(ChatColor.GRAY + "Trusted players can build in your claim,");
-                player.sendMessage(ChatColor.GRAY + "but cannot unclaim or transfer ownership.");
+        }
+
+        // Add Trusted Player menu
+        else if (title.contains("Add Trusted Player") && type == Material.PLAYER_HEAD) {
+            ItemStack head = e.getCurrentItem();
+            if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
+                OfflinePlayer target = meta.getOwningPlayer();
+                if (target != null) {
+                    if (target.getUniqueId().equals(player.getUniqueId())) {
+                        plugin.msg().send(player, "trusted_self");
+                        return;
+                    }
+                    if (plot.isTrusted(target.getUniqueId())) {
+                        plugin.msg().send(player, "trusted_already", "PLAYER", target.getName());
+                        return;
+                    }
+                    plot.addTrusted(target.getUniqueId());
+                    plugin.msg().send(player, "trusted_added", "PLAYER", target.getName());
+                    if (target.isOnline()) {
+                        target.getPlayer().sendMessage(ChatColor.GREEN + "✔ " + player.getName() + " has trusted you in their plot.");
+                    }
+                    open(player); // back to main trusted GUI
+                }
             }
         }
     }
