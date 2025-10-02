@@ -4,7 +4,6 @@ import com.aegisguard.AegisGuard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -14,9 +13,9 @@ import java.util.*;
 
 /**
  * PlotStore
- * - Stores plots: owner, bounds, trusted, flags
- * - Saves/loads from plots.yml with UUID + usernames
- * - Ensures persistence across restarts
+ * - Multi-plot support (per player configurable via config)
+ * - Stores: owner, bounds, trusted, flags
+ * - Persists to plots.yml
  */
 public class PlotStore {
 
@@ -24,8 +23,8 @@ public class PlotStore {
     private final File file;
     private FileConfiguration data;
 
-    // Map<OwnerUUID, Plot>
-    private final Map<UUID, Plot> plots = new HashMap<>();
+    // Map<OwnerUUID, List<Plot>>
+    private final Map<UUID, List<Plot>> plots = new HashMap<>();
 
     public PlotStore(AegisGuard plugin) {
         this.plugin = plugin;
@@ -37,17 +36,17 @@ public class PlotStore {
      * Data Structures
      * ----------------------------- */
     public static class Plot {
+        private final UUID plotId;
         private final UUID owner;
         private String ownerName;
         private final String world;
         private final int x1, z1, x2, z2;
         private final Set<UUID> trusted = new HashSet<>();
         private final Map<UUID, String> trustedNames = new HashMap<>();
-
-        // Flags for protections
         private final Map<String, Boolean> flags = new HashMap<>();
 
-        public Plot(UUID owner, String ownerName, String world, int x1, int z1, int x2, int z2) {
+        public Plot(UUID plotId, UUID owner, String ownerName, String world, int x1, int z1, int x2, int z2) {
+            this.plotId = plotId;
             this.owner = owner;
             this.ownerName = ownerName;
             this.world = world;
@@ -65,8 +64,10 @@ public class PlotStore {
             flags.put("farm", true);
         }
 
+        public UUID getPlotId() { return plotId; }
         public UUID getOwner() { return owner; }
         public String getOwnerName() { return ownerName; }
+        public void setOwnerName(String name) { this.ownerName = name; }
         public String getWorld() { return world; }
         public int getX1() { return x1; }
         public int getZ1() { return z1; }
@@ -76,8 +77,6 @@ public class PlotStore {
         public Set<UUID> getTrusted() { return trusted; }
         public Map<UUID, String> getTrustedNames() { return trustedNames; }
 
-        public void setOwnerName(String name) { this.ownerName = name; }
-
         public boolean isInside(Location loc) {
             if (!loc.getWorld().getName().equals(world)) return false;
             int x = loc.getBlockX();
@@ -85,97 +84,113 @@ public class PlotStore {
             return x >= x1 && x <= x2 && z >= z1 && z <= z2;
         }
 
-        // --- Flags ---
-        public boolean getFlag(String key, boolean def) {
-            return flags.getOrDefault(key, def);
-        }
-
-        public void setFlag(String key, boolean value) {
-            flags.put(key, value);
-        }
-
-        public Map<String, Boolean> getFlags() {
-            return flags;
-        }
+        // Flags
+        public boolean getFlag(String key, boolean def) { return flags.getOrDefault(key, def); }
+        public void setFlag(String key, boolean value) { flags.put(key, value); }
+        public Map<String, Boolean> getFlags() { return flags; }
     }
 
     /* -----------------------------
      * Load / Save
      * ----------------------------- */
     public void load() {
-        if (!file.exists()) {
-            try { file.createNewFile(); } catch (IOException e) { e.printStackTrace(); }
-        }
+        if (!file.exists()) try { file.createNewFile(); } catch (IOException ignored) {}
         this.data = YamlConfiguration.loadConfiguration(file);
-
         plots.clear();
+
         if (data.isConfigurationSection("plots")) {
             for (String ownerId : data.getConfigurationSection("plots").getKeys(false)) {
                 UUID owner = UUID.fromString(ownerId);
-                String path = "plots." + ownerId;
-                String ownerName = data.getString(path + ".owner-name", "Unknown");
-                String world = data.getString(path + ".world");
-                int x1 = data.getInt(path + ".x1");
-                int z1 = data.getInt(path + ".z1");
-                int x2 = data.getInt(path + ".x2");
-                int z2 = data.getInt(path + ".z2");
+                String ownerPath = "plots." + ownerId;
 
-                Plot plot = new Plot(owner, ownerName, world, x1, z1, x2, z2);
-
-                // Load trusted
-                if (data.isConfigurationSection(path + ".trusted")) {
-                    for (String uuidStr : data.getConfigurationSection(path + ".trusted").getKeys(false)) {
-                        UUID t = UUID.fromString(uuidStr);
-                        String tName = data.getString(path + ".trusted." + uuidStr, "Unknown");
-                        plot.getTrusted().add(t);
-                        plot.getTrustedNames().put(t, tName);
-                    }
+                // Migration: single-plot legacy (x1 present directly)
+                if (data.isSet(ownerPath + ".x1")) {
+                    migrateLegacy(owner);
+                    continue;
                 }
 
-                // Load flags
-                if (data.isConfigurationSection(path + ".flags")) {
-                    for (String flagKey : data.getConfigurationSection(path + ".flags").getKeys(false)) {
-                        boolean val = data.getBoolean(path + ".flags." + flagKey, true);
-                        plot.setFlag(flagKey, val);
-                    }
-                }
+                // Multi-plot format
+                for (String plotIdStr : data.getConfigurationSection(ownerPath).getKeys(false)) {
+                    String path = ownerPath + "." + plotIdStr;
+                    UUID plotId = UUID.fromString(plotIdStr);
+                    String ownerName = data.getString(path + ".owner-name", "Unknown");
+                    String world = data.getString(path + ".world");
+                    int x1 = data.getInt(path + ".x1");
+                    int z1 = data.getInt(path + ".z1");
+                    int x2 = data.getInt(path + ".x2");
+                    int z2 = data.getInt(path + ".z2");
 
-                plots.put(owner, plot);
+                    Plot plot = new Plot(plotId, owner, ownerName, world, x1, z1, x2, z2);
+
+                    // Trusted
+                    if (data.isConfigurationSection(path + ".trusted")) {
+                        for (String uuidStr : data.getConfigurationSection(path + ".trusted").getKeys(false)) {
+                            UUID t = UUID.fromString(uuidStr);
+                            String tName = data.getString(path + ".trusted." + uuidStr, "Unknown");
+                            plot.getTrusted().add(t);
+                            plot.getTrustedNames().put(t, tName);
+                        }
+                    }
+
+                    // Flags
+                    if (data.isConfigurationSection(path + ".flags")) {
+                        for (String flagKey : data.getConfigurationSection(path + ".flags").getKeys(false)) {
+                            boolean val = data.getBoolean(path + ".flags." + flagKey, true);
+                            plot.setFlag(flagKey, val);
+                        }
+                    }
+
+                    plots.computeIfAbsent(owner, k -> new ArrayList<>()).add(plot);
+                }
             }
         }
     }
 
+    private void migrateLegacy(UUID owner) {
+        String base = "plots." + owner;
+        String ownerName = data.getString(base + ".owner-name", "Unknown");
+        String world = data.getString(base + ".world");
+        int x1 = data.getInt(base + ".x1");
+        int z1 = data.getInt(base + ".z1");
+        int x2 = data.getInt(base + ".x2");
+        int z2 = data.getInt(base + ".z2");
+
+        UUID plotId = UUID.randomUUID();
+        Plot plot = new Plot(plotId, owner, ownerName, world, x1, z1, x2, z2);
+
+        plots.computeIfAbsent(owner, k -> new ArrayList<>()).add(plot);
+        data.set(base, null); // clear old
+        save(); // re-save in new format
+    }
+
     public void save() {
+        data.set("plots", null); // clear
         for (UUID owner : plots.keySet()) {
-            Plot plot = plots.get(owner);
-            String path = "plots." + owner.toString();
+            for (Plot plot : plots.get(owner)) {
+                String path = "plots." + owner.toString() + "." + plot.getPlotId();
 
-            // Refresh username
-            OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
-            plot.setOwnerName(op.getName() != null ? op.getName() : "Unknown");
+                OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
+                plot.setOwnerName(op.getName() != null ? op.getName() : "Unknown");
 
-            data.set(path + ".owner-name", plot.getOwnerName());
-            data.set(path + ".world", plot.getWorld());
-            data.set(path + ".x1", plot.getX1());
-            data.set(path + ".z1", plot.getZ1());
-            data.set(path + ".x2", plot.getX2());
-            data.set(path + ".z2", plot.getZ2());
+                data.set(path + ".owner-name", plot.getOwnerName());
+                data.set(path + ".world", plot.getWorld());
+                data.set(path + ".x1", plot.getX1());
+                data.set(path + ".z1", plot.getZ1());
+                data.set(path + ".x2", plot.getX2());
+                data.set(path + ".z2", plot.getZ2());
 
-            // Trusted
-            for (UUID t : plot.getTrusted()) {
-                OfflinePlayer tp = Bukkit.getOfflinePlayer(t);
-                plot.getTrustedNames().put(t, tp.getName() != null ? tp.getName() : "Unknown");
-            }
-            for (UUID t : plot.getTrustedNames().keySet()) {
-                data.set(path + ".trusted." + t.toString(), plot.getTrustedNames().get(t));
-            }
-
-            // Flags
-            for (Map.Entry<String, Boolean> flag : plot.getFlags().entrySet()) {
-                data.set(path + ".flags." + flag.getKey(), flag.getValue());
+                for (UUID t : plot.getTrusted()) {
+                    OfflinePlayer tp = Bukkit.getOfflinePlayer(t);
+                    plot.getTrustedNames().put(t, tp.getName() != null ? tp.getName() : "Unknown");
+                }
+                for (UUID t : plot.getTrustedNames().keySet()) {
+                    data.set(path + ".trusted." + t.toString(), plot.getTrustedNames().get(t));
+                }
+                for (Map.Entry<String, Boolean> flag : plot.getFlags().entrySet()) {
+                    data.set(path + ".flags." + flag.getKey(), flag.getValue());
+                }
             }
         }
-
         try { data.save(file); } catch (IOException e) { e.printStackTrace(); }
     }
 
@@ -184,11 +199,22 @@ public class PlotStore {
     /* -----------------------------
      * Plot Management
      * ----------------------------- */
-    public Plot getPlot(UUID owner) { return plots.get(owner); }
+    public List<Plot> getPlots(UUID owner) {
+        return plots.getOrDefault(owner, Collections.emptyList());
+    }
+
+    public Plot getPlot(UUID owner, UUID plotId) {
+        return getPlots(owner).stream().filter(p -> p.getPlotId().equals(plotId)).findFirst().orElse(null);
+    }
 
     public void createPlot(UUID owner, Location c1, Location c2) {
+        int max = plugin.getConfig().getInt("claims.max_claims_per_player", 1);
+        List<Plot> owned = plots.computeIfAbsent(owner, k -> new ArrayList<>());
+        if (owned.size() >= max) return;
+
         OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
         Plot plot = new Plot(
+                UUID.randomUUID(),
                 owner,
                 op.getName() != null ? op.getName() : "Unknown",
                 c1.getWorld().getName(),
@@ -197,36 +223,41 @@ public class PlotStore {
                 c2.getBlockX(),
                 c2.getBlockZ()
         );
-        plots.put(owner, plot);
+        owned.add(plot);
         save();
     }
 
-    public void removePlot(UUID owner) {
+    public void removePlot(UUID owner, UUID plotId) {
+        List<Plot> owned = plots.get(owner);
+        if (owned == null) return;
+        owned.removeIf(p -> p.getPlotId().equals(plotId));
+        if (owned.isEmpty()) plots.remove(owner);
+        save();
+    }
+
+    public void removeAllPlots(UUID owner) {
         plots.remove(owner);
-        data.set("plots." + owner.toString(), null);
         save();
     }
 
-    public boolean hasPlot(UUID owner) { return plots.containsKey(owner); }
+    public boolean hasPlots(UUID owner) { return !getPlots(owner).isEmpty(); }
 
     public Plot getPlotAt(Location loc) {
-        for (Plot p : plots.values()) {
-            if (p.isInside(loc)) return p;
+        for (List<Plot> list : plots.values()) {
+            for (Plot p : list) {
+                if (p.isInside(loc)) return p;
+            }
         }
         return null;
     }
 
+    public Set<UUID> owners() { return plots.keySet(); }
+
     /* -----------------------------
      * Trusted Management
      * ----------------------------- */
-    public List<UUID> getTrusted(UUID owner) {
-        Plot p = plots.get(owner);
-        if (p == null) return Collections.emptyList();
-        return new ArrayList<>(p.getTrusted());
-    }
-
-    public void addTrusted(UUID owner, UUID trusted) {
-        Plot p = plots.get(owner);
+    public void addTrusted(UUID owner, UUID plotId, UUID trusted) {
+        Plot p = getPlot(owner, plotId);
         if (p != null) {
             OfflinePlayer tp = Bukkit.getOfflinePlayer(trusted);
             p.getTrusted().add(trusted);
@@ -235,8 +266,8 @@ public class PlotStore {
         }
     }
 
-    public void removeTrusted(UUID owner, UUID trusted) {
-        Plot p = plots.get(owner);
+    public void removeTrusted(UUID owner, UUID plotId, UUID trusted) {
+        Plot p = getPlot(owner, plotId);
         if (p != null) {
             p.getTrusted().remove(trusted);
             p.getTrustedNames().remove(trusted);
@@ -244,8 +275,8 @@ public class PlotStore {
         }
     }
 
-    public boolean isTrusted(UUID owner, UUID trusted) {
-        Plot p = plots.get(owner);
+    public boolean isTrusted(UUID owner, UUID plotId, UUID trusted) {
+        Plot p = getPlot(owner, plotId);
         return p != null && p.getTrusted().contains(trusted);
     }
 }
