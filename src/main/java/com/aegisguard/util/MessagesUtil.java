@@ -1,7 +1,9 @@
 package com.aegisguard.util;
 
 import com.aegisguard.AegisGuard;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -16,11 +18,13 @@ import java.util.List;
  * - Handles color codes & placeholders
  * - Safe fallbacks if keys are missing
  * - Supports both single-line and list messages
+ * - Supports admin/console-only notifications
  */
 public class MessagesUtil {
 
     private final AegisGuard plugin;
     private FileConfiguration messages;
+    private String prefix; // cached prefix
 
     public MessagesUtil(AegisGuard plugin) {
         this.plugin = plugin;
@@ -36,6 +40,7 @@ public class MessagesUtil {
             plugin.saveResource("messages.yml", false);
         }
         this.messages = YamlConfiguration.loadConfiguration(file);
+        this.prefix = color(messages.getString("prefix", "&8[&bAegisGuard&8]&r "));
     }
 
     /* -----------------------------
@@ -76,7 +81,7 @@ public class MessagesUtil {
         }
         // Add prefix unless it's the prefix itself
         if (!key.equalsIgnoreCase("prefix")) {
-            msg = get("prefix") + msg;
+            msg = prefix + msg;
         }
         return msg;
     }
@@ -102,6 +107,19 @@ public class MessagesUtil {
      * ----------------------------- */
     public void send(Player p, String key, Object... replacements) {
         p.sendMessage(format(key, replacements));
+    }
+
+    /* -----------------------------
+     * Send to admins + console only
+     * ----------------------------- */
+    public void sendAdmin(String key, Object... replacements) {
+        String msg = format(key, replacements);
+        // Console
+        Bukkit.getConsoleSender().sendMessage(msg);
+        // Online admins
+        Bukkit.getOnlinePlayers().stream()
+                .filter(p -> p.hasPermission("aegisguard.admin"))
+                .forEach(p -> p.sendMessage(msg));
     }
 
     /* -----------------------------
