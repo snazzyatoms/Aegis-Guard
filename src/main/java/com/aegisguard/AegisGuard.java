@@ -29,7 +29,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  *  - Provides Aegis Scepter utility
  *
  *  NOTE: /aegis sound is kept as a fallback admin override
- *        in case GUI toggles fail or configs need quick fixes.
+ *        for global toggles only. Players control their own
+ *        sounds through the Settings GUI.
  * ==============================================================
  */
 public class AegisGuard extends JavaPlugin {
@@ -111,7 +112,7 @@ public class AegisGuard extends JavaPlugin {
             case "unclaim" -> selection.unclaimHere(p);
 
             case "sound" -> {
-                // Admin fallback control
+                // Admin fallback: global toggle only
                 if (!p.hasPermission("aegisguard.admin")) {
                     msg().send(p, "no_perm");
                     return true;
@@ -119,36 +120,19 @@ public class AegisGuard extends JavaPlugin {
                 if (args.length < 2) {
                     p.sendMessage("§eUsage:");
                     p.sendMessage("§7/aegis sound global <on|off>");
-                    p.sendMessage("§7/aegis sound player <name> <on|off>");
                     return true;
                 }
-                switch (args[1].toLowerCase()) {
-                    case "global" -> {
-                        if (args.length < 3) {
-                            p.sendMessage("§cUsage: /aegis sound global <on|off>");
-                            return true;
-                        }
-                        boolean enable = args[2].equalsIgnoreCase("on");
-                        getConfig().set("sounds.global_enabled", enable);
-                        saveConfig();
-                        msg().send(p, enable ? "sound_global_enabled" : "sound_global_disabled");
+                if (args[1].equalsIgnoreCase("global")) {
+                    if (args.length < 3) {
+                        p.sendMessage("§cUsage: /aegis sound global <on|off>");
+                        return true;
                     }
-                    case "player" -> {
-                        if (args.length < 4) {
-                            p.sendMessage("§cUsage: /aegis sound player <name> <on|off>");
-                            return true;
-                        }
-                        Player target = Bukkit.getPlayer(args[2]);
-                        if (target == null) {
-                            p.sendMessage("§cPlayer not found: " + args[2]);
-                            return true;
-                        }
-                        boolean enable = args[3].equalsIgnoreCase("on");
-                        getConfig().set("sounds.players." + target.getUniqueId(), enable);
-                        saveConfig();
-                        msg().send(p, enable ? "sound_player_enabled" : "sound_player_disabled", "PLAYER", target.getName());
-                    }
-                    default -> p.sendMessage("§cInvalid mode. Use §7global §cor §7player");
+                    boolean enable = args[2].equalsIgnoreCase("on");
+                    getConfig().set("sounds.global_enabled", enable);
+                    saveConfig();
+                    msg().send(p, enable ? "sound_global_enabled" : "sound_global_disabled");
+                } else {
+                    p.sendMessage("§cInvalid mode. Use §7global");
                 }
             }
 
