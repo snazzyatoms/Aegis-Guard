@@ -16,7 +16,7 @@ import java.util.List;
  * - Guardian Codex main menu hub
  * - Access to claim tools, trusted players, and settings
  * - Fully synced with messages.yml for customization
- * - Uses SoundManager for immersive effects
+ * - Player-based sound toggle via Settings menu
  */
 public class GUIManager {
 
@@ -107,20 +107,19 @@ public class GUIManager {
     }
 
     /* -----------------------------
-     * Handle Main Menu Clicks
+     * Handle Menu Clicks
      * ----------------------------- */
     public void handleClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player player)) return;
         if (e.getClickedInventory() == null) return;
+        if (e.getCurrentItem() == null) return;
 
         String title = e.getView().getTitle();
+        Material type = e.getCurrentItem().getType();
 
         // Main menu
         if (title.equals(plugin.msg().get("menu_title"))) {
             e.setCancelled(true);
-            if (e.getCurrentItem() == null) return;
-
-            Material type = e.getCurrentItem().getType();
             switch (type) {
                 case LIGHTNING_ROD -> {
                     player.closeInventory();
@@ -146,9 +145,6 @@ public class GUIManager {
         // Settings menu
         else if (title.equals(plugin.msg().get("settings_menu_title"))) {
             e.setCancelled(true);
-            if (e.getCurrentItem() == null) return;
-
-            Material type = e.getCurrentItem().getType();
             switch (type) {
                 case NOTE_BLOCK, BARRIER -> {
                     // Toggle sounds for this player
@@ -157,7 +153,7 @@ public class GUIManager {
                     plugin.saveConfig();
 
                     plugin.msg().send(player, !currentlyEnabled ? "sound_enabled" : "sound_disabled");
-                    openSettings(player); // refresh
+                    openSettings(player); // refresh menu with new state
                 }
                 case ARROW -> openMain(player);
                 case BARRIER -> {
