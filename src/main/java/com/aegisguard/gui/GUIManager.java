@@ -81,12 +81,23 @@ public class GUIManager {
         Inventory inv = Bukkit.createInventory(null, 27, plugin.msg().get("settings_menu_title"));
 
         // Toggle Sounds
-        boolean soundsEnabled = plugin.isSoundEnabled(player);
-        inv.setItem(11, createItem(
-                soundsEnabled ? Material.NOTE_BLOCK : Material.BARRIER,
-                soundsEnabled ? plugin.msg().get("button_sounds_on") : plugin.msg().get("button_sounds_off"),
-                plugin.msg().getList("sounds_toggle_lore")
-        ));
+        boolean globalEnabled = plugin.getConfig().getBoolean("sounds.global_enabled", true);
+        if (!globalEnabled) {
+            // Show disabled state (unclickable)
+            inv.setItem(11, createItem(
+                    Material.BARRIER,
+                    plugin.msg().get("button_sounds_disabled_global"),
+                    plugin.msg().getList("sounds_toggle_global_disabled_lore")
+            ));
+        } else {
+            // Per-player toggle
+            boolean soundsEnabled = plugin.isSoundEnabled(player);
+            inv.setItem(11, createItem(
+                    soundsEnabled ? Material.NOTE_BLOCK : Material.BARRIER,
+                    soundsEnabled ? plugin.msg().get("button_sounds_on") : plugin.msg().get("button_sounds_off"),
+                    plugin.msg().getList("sounds_toggle_lore")
+            ));
+        }
 
         // Back
         inv.setItem(22, createItem(
@@ -145,6 +156,14 @@ public class GUIManager {
         // Settings menu
         else if (title.equals(plugin.msg().get("settings_menu_title"))) {
             e.setCancelled(true);
+
+            boolean globalEnabled = plugin.getConfig().getBoolean("sounds.global_enabled", true);
+
+            // If globally disabled, ignore clicks on the sound toggle
+            if (!globalEnabled && type == Material.BARRIER) {
+                return;
+            }
+
             switch (type) {
                 case NOTE_BLOCK, BARRIER -> {
                     // Toggle sounds for this player
