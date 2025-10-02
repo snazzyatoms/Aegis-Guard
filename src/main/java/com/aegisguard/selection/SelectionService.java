@@ -105,16 +105,37 @@ public class SelectionService implements Listener {
     }
 
     /* -----------------------------
-     * Unclaim
-     * ----------------------------- */
-    public void unclaimHere(Player p) {
-        UUID id = p.getUniqueId();
-        if (!plugin.store().hasPlot(id)) {
-            p.sendMessage(ChatColor.RED + "❌ You do not own a plot.");
-            return;
-        }
-        plugin.store().removePlot(id);
-        p.sendMessage(ChatColor.YELLOW + "⚠ Your plot has been unclaimed.");
-        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_BREAK, 1f, 1f);
+ * Unclaim
+ * ----------------------------- */
+public void unclaimHere(Player p) {
+    UUID id = p.getUniqueId();
+    if (!plugin.store().hasPlot(id)) {
+        p.sendMessage(ChatColor.RED + "❌ You do not own a plot.");
+        return;
     }
+
+    // Refund system
+    boolean refund = plugin.getConfig().getBoolean("claim.refund_on_unclaim", false);
+    boolean useVault = plugin.getConfig().getBoolean("claim.use_vault", true);
+    double vaultCost = plugin.getConfig().getDouble("claim.cost", 0.0);
+    String itemType = plugin.getConfig().getString("claim.item.type", "DIAMOND");
+    int itemAmount = plugin.getConfig().getInt("claim.item.amount", 0);
+
+    if (refund) {
+        if (useVault && vaultCost > 0) {
+            plugin.vault().give(p, vaultCost);
+            p.sendMessage(ChatColor.YELLOW + "💰 Refunded $" + vaultCost + " for unclaiming.");
+        } else {
+            var mat = Material.matchMaterial(itemType);
+            if (mat != null && itemAmount > 0) {
+                p.getInventory().addItem(new ItemStack(mat, itemAmount));
+                p.sendMessage(ChatColor.YELLOW + "💎 Refunded " + itemAmount + " " + itemType + "(s) for unclaiming.");
+            }
+        }
+    }
+
+    // Remove plot
+    plugin.store().removePlot(id);
+    p.sendMessage(ChatColor.YELLOW + "⚠ Your plot has been unclaimed.");
+    p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_BREAK, 1f, 1f);
 }
