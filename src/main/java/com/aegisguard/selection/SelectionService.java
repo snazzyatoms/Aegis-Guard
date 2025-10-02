@@ -1,6 +1,7 @@
 package com.aegisguard.selection;
 
 import com.aegisguard.AegisGuard;
+import com.aegisguard.data.PlotStore;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,7 +22,7 @@ import java.util.UUID;
  * - Selects corners and creates plots
  * - Integrates VaultHook & refund system
  * - Reads defaults from config.yml
- * - Uses SoundManager for immersive codex-themed audio
+ * - Supports multi-plot & claim limits
  */
 public class SelectionService implements Listener {
 
@@ -45,19 +46,18 @@ public class SelectionService implements Listener {
         if (item == null || item.getType() != Material.LIGHTNING_ROD) return;
         if (item.getItemMeta() == null || !plugin.msg().isScepter(item.getItemMeta())) return;
 
-        Action action = e.getAction();
         Location loc = e.getClickedBlock() != null ? e.getClickedBlock().getLocation() : null;
         if (loc == null) return;
 
-        if (action == Action.LEFT_CLICK_BLOCK) {
+        if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
             corner1.put(p.getUniqueId(), loc);
             plugin.msg().send(p, "corner1_set", "{X}", String.valueOf(loc.getBlockX()), "{Z}", String.valueOf(loc.getBlockZ()));
-            plugin.sounds().playMenuFlip(p); // page mark sound
+            plugin.sounds().playMenuFlip(p);
             e.setCancelled(true);
-        } else if (action == Action.RIGHT_CLICK_BLOCK) {
+        } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             corner2.put(p.getUniqueId(), loc);
             plugin.msg().send(p, "corner2_set", "{X}", String.valueOf(loc.getBlockX()), "{Z}", String.valueOf(loc.getBlockZ()));
-            plugin.sounds().playMenuFlip(p); // page mark sound
+            plugin.sounds().playMenuFlip(p);
             e.setCancelled(true);
         }
     }
@@ -67,14 +67,19 @@ public class SelectionService implements Listener {
      * ----------------------------- */
     public void confirmClaim(Player p) {
         UUID id = p.getUniqueId();
-        if (plugin.store().hasPlot(id)) {
-            plugin.msg().send(p, "already_has_plot");
-            plugin.sounds().playMenuClose(p); // fail page
+
+        // claim limit
+        int maxClaims = plugin.getConfig().getInt("claims.max_per_player", 1);
+        int currentClaims = plugin.store().getPlots(id).size();
+        if (currentClaims >= maxClaims) {
+            plugin.msg().send(p, "max_claims_reached", "{AMOUNT}", String.valueOf(maxClaims));
+            plugin.sounds().playMenuClose(p);
             return;
         }
+
         if (!corner1.containsKey(id) || !corner2.containsKey(id)) {
             plugin.msg().send(p, "must_select");
-            plugin.sounds().playMenuClose(p); // fail page
+            plugin.sounds().playMenuClose(p);
             return;
         }
 
@@ -114,7 +119,6 @@ public class SelectionService implements Listener {
             plugin.msg().send(p, "items_deducted", "{AMOUNT}", String.valueOf(itemAmount), "{ITEM}", itemType);
         }
 
-        // Magical claim sound
         plugin.sounds().playClaimMagic(p);
 
         if (plugin.cfg().getBoolean("effects.on_claim.lightning_visual", true)) {
@@ -123,11 +127,13 @@ public class SelectionService implements Listener {
     }
 
     /* -----------------------------
-     * Unclaim
+     * Unclaim (only plot you’re standing in)
      * ----------------------------- */
     public void unclaimHere(Player p) {
         UUID id = p.getUniqueId();
-        if (!plugin.store().hasPlot(id)) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(p.getLocation());
+
+        if (plot == null || !plot.getOwner().equals(id)) {
             plugin.msg().send(p, "no_plot_here");
             plugin.sounds().playMenuClose(p);
             return;
@@ -158,10 +164,9 @@ public class SelectionService implements Listener {
             }
         }
 
-        plugin.store().removePlot(id);
+        plugin.store().removePlot(plot.getOwner()); // remove that specific plot
         plugin.msg().send(p, "plot_unclaimed");
 
-        // Magical unclaim sound
         plugin.sounds().playUnclaim(p);
     }
 }
