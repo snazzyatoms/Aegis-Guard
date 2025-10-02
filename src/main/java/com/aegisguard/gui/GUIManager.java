@@ -159,7 +159,7 @@ public class GUIManager {
 
             boolean globalEnabled = plugin.getConfig().getBoolean("sounds.global_enabled", true);
 
-            // If globally disabled, ignore clicks on the sound toggle
+            // Ignore clicks if globally disabled (button is just decorative)
             if (!globalEnabled && type == Material.BARRIER) {
                 return;
             }
