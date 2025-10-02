@@ -54,5 +54,11 @@ button_remove_trusted: "&cRemove Trusted"
 button_back: "&cBack"
 button_exit: "&cExit"
 
+# Example: multi-line lore for trusted menu
+trusted_menu_lore:
+  - "&7Trusted players can build and interact"
+  - "&7but cannot unclaim or transfer land."
+  - "&eAdd/remove trusted members below!"
+
 # Effects
 claim_effect: "&b⚡ Zeus blesses your land! A claim has been created."
