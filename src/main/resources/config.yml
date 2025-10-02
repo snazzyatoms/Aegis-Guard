@@ -1,7 +1,9 @@
 # ======================================
 # AegisGuard v1.0 - Config
 # ======================================
-# Quick Defaults
+
+# ======================================
+# Economy
 # ======================================
 use_vault: true            # true = use Vault currency, false = item cost
 claim_cost: 100.0          # Vault cost per claim (only if use_vault = true)
@@ -21,6 +23,7 @@ limits:
   max_radius: 32            # Maximum radius for a claim (in blocks)
   max_area: 16000           # Maximum total claim area (blocks^2)
   preview_seconds: 10       # How long (in seconds) a claim preview lasts
+  max_claims_per_player: 1  # How many plots a player can own (admins can bypass if enabled)
 
 # ======================================
 # Effects & Visuals
@@ -37,6 +40,9 @@ protections:
   no_mobs_in_claims: true      # Prevent hostile mobs from spawning inside claims
   pvp_protection: true         # Disable PvP inside claims (trusted players exempt)
   container_protection: true   # Block non-trusted players from opening chests/furnaces
+  pet_protection: true         # Protect pets from harm
+  entity_protection: true      # Protect item frames, armor stands, etc.
+  farm_protection: true        # Prevent farmland from being trampled
 
 # ======================================
 # Sounds & Immersion
@@ -51,7 +57,7 @@ sounds:
 # Admin Options
 # ======================================
 admin:
-  auto_remove_banned: false     # Remove all plots of a banned player automatically
-  bypass_claim_limit: false     # Allow admins to bypass claim limits
-  broadcast_admin_actions: false # If true, admin actions are shown to ALL players
-                                # If false (default), only admins + console see them
+  auto_remove_banned: false        # Remove all plots of a banned player automatically
+  bypass_claim_limit: false        # Allow admins to bypass claim limits
+  broadcast_admin_actions: false   # If true, admin actions are broadcast to ALL players
+                                   # If false (default), only admins + console see them
