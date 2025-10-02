@@ -71,7 +71,39 @@ public class GUIManager {
         ));
 
         player.openInventory(inv);
-        plugin.sounds().playMenuOpen(player); // 📖 magical open
+        plugin.sounds().playMenuOpen(player);
+    }
+
+    /* -----------------------------
+     * Open Settings Menu
+     * ----------------------------- */
+    public void openSettings(Player player) {
+        Inventory inv = Bukkit.createInventory(null, 27, plugin.msg().get("settings_menu_title"));
+
+        // Toggle Sounds
+        boolean soundsEnabled = plugin.isSoundEnabled(player);
+        inv.setItem(11, createItem(
+                soundsEnabled ? Material.NOTE_BLOCK : Material.BARRIER,
+                soundsEnabled ? plugin.msg().get("button_sounds_on") : plugin.msg().get("button_sounds_off"),
+                plugin.msg().getList("sounds_toggle_lore")
+        ));
+
+        // Back
+        inv.setItem(22, createItem(
+                Material.ARROW,
+                plugin.msg().get("button_back"),
+                plugin.msg().getList("back_lore")
+        ));
+
+        // Exit
+        inv.setItem(26, createItem(
+                Material.BARRIER,
+                plugin.msg().get("button_exit"),
+                plugin.msg().getList("exit_lore")
+        ));
+
+        player.openInventory(inv);
+        plugin.sounds().playMenuFlip(player);
     }
 
     /* -----------------------------
@@ -82,34 +114,56 @@ public class GUIManager {
         if (e.getClickedInventory() == null) return;
 
         String title = e.getView().getTitle();
-        if (!title.equals(plugin.msg().get("menu_title"))) return;
 
-        e.setCancelled(true);
-        if (e.getCurrentItem() == null) return;
+        // Main menu
+        if (title.equals(plugin.msg().get("menu_title"))) {
+            e.setCancelled(true);
+            if (e.getCurrentItem() == null) return;
 
-        Material type = e.getCurrentItem().getType();
+            Material type = e.getCurrentItem().getType();
+            switch (type) {
+                case LIGHTNING_ROD -> {
+                    player.closeInventory();
+                    plugin.selection().confirmClaim(player);
+                    plugin.sounds().playMenuFlip(player);
+                }
+                case PLAYER_HEAD -> {
+                    trustedGUI.open(player);
+                    plugin.sounds().playMenuFlip(player);
+                }
+                case REDSTONE_COMPARATOR -> openSettings(player);
+                case WRITABLE_BOOK -> {
+                    player.sendMessage(plugin.msg().get("info_message"));
+                    plugin.sounds().playMenuFlip(player);
+                }
+                case BARRIER -> {
+                    player.closeInventory();
+                    plugin.sounds().playMenuClose(player);
+                }
+            }
+        }
 
-        switch (type) {
-            case LIGHTNING_ROD -> {
-                player.closeInventory();
-                plugin.selection().confirmClaim(player);
-                plugin.sounds().playMenuFlip(player);
-            }
-            case PLAYER_HEAD -> {
-                trustedGUI.open(player);
-                plugin.sounds().playMenuFlip(player);
-            }
-            case REDSTONE_COMPARATOR -> {
-                player.sendMessage(plugin.msg().get("settings_coming_soon"));
-                plugin.sounds().playMenuFlip(player);
-            }
-            case WRITABLE_BOOK -> {
-                player.sendMessage(plugin.msg().get("info_message"));
-                plugin.sounds().playMenuFlip(player);
-            }
-            case BARRIER -> {
-                player.closeInventory();
-                plugin.sounds().playMenuClose(player);
+        // Settings menu
+        else if (title.equals(plugin.msg().get("settings_menu_title"))) {
+            e.setCancelled(true);
+            if (e.getCurrentItem() == null) return;
+
+            Material type = e.getCurrentItem().getType();
+            switch (type) {
+                case NOTE_BLOCK, BARRIER -> {
+                    // Toggle sounds for this player
+                    boolean currentlyEnabled = plugin.isSoundEnabled(player);
+                    plugin.getConfig().set("sounds.players." + player.getUniqueId(), !currentlyEnabled);
+                    plugin.saveConfig();
+
+                    plugin.msg().send(player, !currentlyEnabled ? "sound_enabled" : "sound_disabled");
+                    openSettings(player); // refresh
+                }
+                case ARROW -> openMain(player);
+                case BARRIER -> {
+                    player.closeInventory();
+                    plugin.sounds().playMenuClose(player);
+                }
             }
         }
     }
