@@ -3,7 +3,6 @@ package com.aegisguard.gui;
 import com.aegisguard.AegisGuard;
 import com.aegisguard.data.Plot;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -33,7 +32,8 @@ public class TrustedGUI {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 54, ChatColor.YELLOW + "⚔ Guardian Codex ⚔ – Trusted Players");
+        String title = plugin.msg().get("trusted_menu_title");
+        Inventory inv = Bukkit.createInventory(null, 54, title);
 
         // Trusted players list
         int slot = 0;
@@ -46,11 +46,8 @@ public class TrustedGUI {
 
             if (meta != null) {
                 meta.setOwningPlayer(trusted);
-                meta.setDisplayName(ChatColor.GREEN + (trusted.getName() != null ? trusted.getName() : "Unknown"));
-                meta.setLore(List.of(
-                        ChatColor.GRAY + "✔ Trusted in your claim",
-                        ChatColor.DARK_GRAY + "Click to remove this player"
-                ));
+                meta.setDisplayName(plugin.msg().color("&a" + (trusted.getName() != null ? trusted.getName() : "Unknown")));
+                meta.setLore(plugin.msg().getList("trusted_menu_lore"));
                 head.setItemMeta(meta);
             }
             inv.setItem(slot++, head);
@@ -58,31 +55,28 @@ public class TrustedGUI {
 
         // Add Trusted
         inv.setItem(45, GUIManager.icon(Material.EMERALD,
-                ChatColor.GREEN + "Add Trusted",
-                List.of(ChatColor.GRAY + "Pick an online player to trust.")));
+                plugin.msg().get("button_add_trusted"),
+                plugin.msg().getList("add_trusted_lore")));
 
         // Remove Trusted
         inv.setItem(46, GUIManager.icon(Material.BARRIER,
-                ChatColor.RED + "Remove Trusted",
-                List.of(ChatColor.GRAY + "Click on a head to remove.")));
+                plugin.msg().get("button_remove_trusted"),
+                plugin.msg().getList("remove_trusted_lore")));
 
         // Info & Guide
         inv.setItem(51, GUIManager.icon(Material.WRITABLE_BOOK,
-                ChatColor.GOLD + "📖 Info & Guide",
-                List.of(
-                        ChatColor.GRAY + "Trusted players can build,",
-                        ChatColor.GRAY + "but cannot unclaim or transfer ownership."
-                )));
+                plugin.msg().get("button_info"),
+                plugin.msg().getList("info_trusted_lore")));
 
         // Back
         inv.setItem(52, GUIManager.icon(Material.ARROW,
-                ChatColor.YELLOW + "Back",
-                List.of(ChatColor.GRAY + "Return to Guardian Codex")));
+                plugin.msg().get("button_back"),
+                List.of(plugin.msg().get("menu_title"))));
 
         // Exit
         inv.setItem(53, GUIManager.icon(Material.BARRIER,
-                ChatColor.RED + "Exit",
-                List.of(ChatColor.GRAY + "Close this menu")));
+                plugin.msg().get("button_exit"),
+                List.of(plugin.msg().color("&7Close this menu"))));
 
         owner.openInventory(inv);
     }
@@ -96,10 +90,9 @@ public class TrustedGUI {
         if (e.getCurrentItem() == null) return;
         Material type = e.getCurrentItem().getType();
 
-        String title = ChatColor.stripColor(e.getView().getTitle());
+        String title = e.getView().getTitle();
         Plot plot = plugin.store().getPlot(player.getUniqueId());
 
-        // No plot
         if (plot == null) {
             plugin.msg().send(player, "no_plot_here");
             player.closeInventory();
@@ -107,52 +100,52 @@ public class TrustedGUI {
         }
 
         // Trusted Players menu
-        if (title.contains("Trusted Players")) {
+        if (title.equalsIgnoreCase(plugin.msg().get("trusted_menu_title"))) {
             switch (type) {
                 case PLAYER_HEAD -> {
-                    // Remove trusted player
                     ItemStack head = e.getCurrentItem();
                     if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
                         OfflinePlayer target = meta.getOwningPlayer();
                         if (target != null && plot.isTrusted(target.getUniqueId())) {
                             plot.removeTrusted(target.getUniqueId());
                             plugin.msg().send(player, "trusted_removed", "PLAYER", target.getName());
-                            open(player); // refresh GUI
+                            open(player);
                         }
                     }
                 }
                 case EMERALD -> {
                     // Open Add Trusted submenu
-                    Inventory addMenu = Bukkit.createInventory(null, 54, ChatColor.GREEN + "Add Trusted Player");
+                    String addTitle = plugin.msg().get("add_trusted_title");
+                    Inventory addMenu = Bukkit.createInventory(null, 54, addTitle);
                     int slot = 0;
                     for (Player online : Bukkit.getOnlinePlayers()) {
                         if (slot >= 54) break;
-                        if (online.getUniqueId().equals(player.getUniqueId())) continue; // skip self
+                        if (online.getUniqueId().equals(player.getUniqueId())) continue;
 
                         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
                         SkullMeta meta = (SkullMeta) head.getItemMeta();
                         if (meta != null) {
                             meta.setOwningPlayer(online);
-                            meta.setDisplayName(ChatColor.YELLOW + online.getName());
-                            meta.setLore(List.of(ChatColor.GRAY + "Click to trust this player"));
+                            meta.setDisplayName(plugin.msg().color("&e" + online.getName()));
+                            meta.setLore(List.of(plugin.msg().color("&7Click to trust this player")));
                             head.setItemMeta(meta);
                         }
                         addMenu.setItem(slot++, head);
                     }
                     player.openInventory(addMenu);
                 }
-                case ARROW -> plugin.gui().openMain(player); // Back
-                case BARRIER -> player.closeInventory();     // Exit
+                case ARROW -> plugin.gui().openMain(player);
+                case BARRIER -> player.closeInventory();
                 case WRITABLE_BOOK -> {
-                    player.sendMessage(ChatColor.GOLD + "📖 Trusted Players Guide:");
-                    player.sendMessage(ChatColor.GRAY + "Trusted players can build in your claim,");
-                    player.sendMessage(ChatColor.GRAY + "but cannot unclaim or transfer ownership.");
+                    for (String line : plugin.msg().getList("info_trusted_lore")) {
+                        player.sendMessage(line);
+                    }
                 }
             }
         }
 
         // Add Trusted Player menu
-        else if (title.contains("Add Trusted Player") && type == Material.PLAYER_HEAD) {
+        else if (title.equalsIgnoreCase(plugin.msg().get("add_trusted_title")) && type == Material.PLAYER_HEAD) {
             ItemStack head = e.getCurrentItem();
             if (head.hasItemMeta() && head.getItemMeta() instanceof SkullMeta meta) {
                 OfflinePlayer target = meta.getOwningPlayer();
@@ -168,9 +161,9 @@ public class TrustedGUI {
                     plot.addTrusted(target.getUniqueId());
                     plugin.msg().send(player, "trusted_added", "PLAYER", target.getName());
                     if (target.isOnline()) {
-                        target.getPlayer().sendMessage(ChatColor.GREEN + "✔ " + player.getName() + " has trusted you in their plot.");
+                        plugin.msg().send(target.getPlayer(), "trusted_added_target", "PLAYER", player.getName());
                     }
-                    open(player); // back to main trusted GUI
+                    open(player);
                 }
             }
         }
