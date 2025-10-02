@@ -15,6 +15,7 @@ prefix: "&8[&bAegisGuard&8]&r "
 # General
 no_perm: "&cYou do not have permission."
 players_only: "&cOnly players can use this command."
+usage_main: "&eUsage: /aegis <wand|menu|claim|unclaim|sound|help>"
 
 # Wand & Selection
 wand_given: "&aAegis Scepter granted."
@@ -104,6 +105,24 @@ info_trusted_lore:
   - "&a✔ Build & interact"
   - "&c✖ Not unclaim"
   - "&c✖ Not transfer ownership"
+
+# Sound Management
+sound_global_enabled: "&a✔ Global sounds have been enabled."
+sound_global_disabled: "&c❌ Global sounds have been disabled."
+sound_player_enabled: "&a✔ Sounds enabled for {PLAYER}."
+sound_player_disabled: "&c❌ Sounds disabled for {PLAYER}."
+
+# Help
+help_header: "&b⚔ &nGuardian Codex Help&r"
+help_lines:
+  - "&7--------------------------------------"
+  - "&e/aegis wand &7- Receive the &bAegis Scepter"
+  - "&e/aegis menu &7- Open the Guardian Codex menu"
+  - "&e/aegis claim &7- Claim land using your selection"
+  - "&e/aegis unclaim &7- Unclaim your current land"
+  - "&e/aegis sound &7- Toggle menu sounds (global or per-player)"
+  - "&e/aegis help &7- Show this help page"
+  - "&7--------------------------------------"
 
 # Misc
 settings_coming_soon: "&9⚙ Settings GUI coming soon!"
