@@ -45,6 +45,13 @@ protections:
   farm_protection: true        # Prevent trampling farmland (players, mobs, NPCs)
 
 # ======================================
+# Admin Controls
+# ======================================
+admin:
+  auto_remove_banned_plots: false   # If true, plots owned by banned players are removed automatically
+  bypass_claim_limit: false         # If true, admins bypass claim limits (disabled by default)
+
+# ======================================
 # Sounds & Immersion
 # ======================================
 sounds:
