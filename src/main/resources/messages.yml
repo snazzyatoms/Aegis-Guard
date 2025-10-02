@@ -1,4 +1,50 @@
+# ======================================
+# AegisGuard v1.0 - Messages
+# ======================================
+
 prefix: "&8[&bAegisGuard&8]&r "
+
+# General
 no_perm: "&cYou do not have permission."
+players_only: "&cOnly players can use this command."
+
+# Wand & Selection
 wand_given: "&aAegis Scepter granted."
-no_plot_here: "&cNo plot here or you are not the owner."
+corner1_set: "&a⚡ First corner set at &e{X}, {Z}"
+corner2_set: "&b⚡ Second corner set at &e{X}, {Z}"
+must_select: "&c❌ Select two corners with your Aegis Scepter first."
+already_has_plot: "&c❌ You already own a plot. Unclaim it first."
+plot_created: "&a✔ Plot created successfully!"
+plot_unclaimed: "&e⚠ Your plot has been unclaimed."
+
+# Costs & Refunds
+need_vault: "&c❌ You need at least &e${AMOUNT}&c to claim land."
+need_items: "&c❌ You need &e{AMOUNT} {ITEM}(s)&c to claim land."
+cost_deducted: "&e💰 Cost: &6${AMOUNT}&e has been deducted."
+items_deducted: "&e💎 {AMOUNT} {ITEM}(s) consumed for claim."
+vault_refund: "&e💰 Refunded &6${AMOUNT}&e ({PERCENT}%) for unclaiming."
+item_refund: "&e💎 Refunded &6{AMOUNT} {ITEM}(s)&e ({PERCENT}%) for unclaiming."
+
+# Protections
+cannot_break: "&c❌ You cannot break blocks here!"
+cannot_place: "&c❌ You cannot place blocks here!"
+cannot_interact: "&c❌ You cannot interact here!"
+cannot_attack: "&c❌ You cannot attack players here!"
+
+# Trusted Players
+trusted_added: "&a✔ {PLAYER} is now trusted in your plot."
+trusted_removed: "&c❌ {PLAYER} is no longer trusted."
+trusted_self: "&c❌ You cannot trust yourself."
+trusted_already: "&c❌ {PLAYER} is already trusted."
+not_trusted: "&c❌ {PLAYER} is not trusted in your plot."
+
+# GUI
+menu_title: "&eAegisGuard Menu"
+trusted_menu_title: "&eTrusted Players"
+button_add_trusted: "&aAdd Trusted"
+button_remove_trusted: "&cRemove Trusted"
+button_back: "&cBack"
+button_exit: "&cExit"
+
+# Effects
+claim_effect: "&b⚡ Zeus blesses your land! A claim has been created."
