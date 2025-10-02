@@ -51,7 +51,7 @@ sounds:
 # Admin Options
 # ======================================
 admin:
-  auto_remove_banned: false      # Remove all plots of a banned player automatically
-  bypass_claim_limit: false      # Allow admins to bypass claim limits
-  broadcast_admin_actions: false # If true, admin actions are shown to ALL players
-                                 # If false (default), only admins + console see them
+  auto_remove_banned: false       # Remove all plots of a banned player automatically
+  bypass_claim_limit: false       # Allow admins to bypass claim limits
+  broadcast_admin_actions: false  # If true, admin actions are shown to ALL players
+                                  # If false (default), only admins + console see them
