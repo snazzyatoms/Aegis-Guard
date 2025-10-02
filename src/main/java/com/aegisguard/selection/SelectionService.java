@@ -20,8 +20,9 @@ import java.util.UUID;
  * SelectionService
  * - Handles Aegis Scepter interactions
  * - Selects corners and creates plots
- * - Opens Guardian Codex GUI via right-click air
  * - Integrates VaultHook & refund system
+ * - Reads defaults from config.yml (quick defaults > claim.* section)
+ * - Adds immersive codex-themed sounds
  */
 public class SelectionService implements Listener {
 
@@ -38,43 +39,26 @@ public class SelectionService implements Listener {
      * ----------------------------- */
     @EventHandler
     public void onSelect(PlayerInteractEvent e) {
-        if (e.getHand() != EquipmentSlot.HAND) return; // ignore offhand
-        if (!(e.getPlayer() instanceof Player p)) return;
+        if (e.getHand() != EquipmentSlot.HAND) return;
+        Player p = e.getPlayer();
 
         ItemStack item = e.getItem();
-        if (item == null || item.getType() != Material.LIGHTNING_ROD) return; // must be Aegis Scepter
+        if (item == null || item.getType() != Material.LIGHTNING_ROD) return;
         if (item.getItemMeta() == null || !plugin.msg().isScepter(item.getItemMeta())) return;
 
         Action action = e.getAction();
         Location loc = e.getClickedBlock() != null ? e.getClickedBlock().getLocation() : null;
-
-        // Right-click air → Open Guardian Codex GUI
-        if (action == Action.RIGHT_CLICK_AIR) {
-            plugin.gui().openMain(p);
-            p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f);
-            return;
-        }
-
-        // Sneak + right-click block → Open Guardian Codex GUI
-        if (action == Action.RIGHT_CLICK_BLOCK && p.isSneaking()) {
-            plugin.gui().openMain(p);
-            p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.8f);
-            e.setCancelled(true);
-            return;
-        }
-
-        // Handle claim corner selection
         if (loc == null) return;
 
         if (action == Action.LEFT_CLICK_BLOCK) {
             corner1.put(p.getUniqueId(), loc);
             plugin.msg().send(p, "corner1_set", "{X}", String.valueOf(loc.getBlockX()), "{Z}", String.valueOf(loc.getBlockZ()));
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 2f);
+            p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1.2f); // page mark sound
             e.setCancelled(true);
         } else if (action == Action.RIGHT_CLICK_BLOCK) {
             corner2.put(p.getUniqueId(), loc);
             plugin.msg().send(p, "corner2_set", "{X}", String.valueOf(loc.getBlockX()), "{Z}", String.valueOf(loc.getBlockZ()));
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1f);
+            p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 1f); // page mark sound
             e.setCancelled(true);
         }
     }
@@ -86,14 +70,16 @@ public class SelectionService implements Listener {
         UUID id = p.getUniqueId();
         if (plugin.store().hasPlot(id)) {
             plugin.msg().send(p, "already_has_plot");
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f); // fail page
             return;
         }
         if (!corner1.containsKey(id) || !corner2.containsKey(id)) {
             plugin.msg().send(p, "must_select");
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f); // fail page
             return;
         }
 
-        // Economy config: prioritize quick defaults, fallback to claim.*
+        // Economy setup
         boolean useVault = plugin.getConfig().getBoolean("use_vault", plugin.getConfig().getBoolean("claim.use_vault", true));
         double cost = plugin.getConfig().getDouble("claim_cost", plugin.getConfig().getDouble("claim.cost", 0.0));
         String itemType = plugin.getConfig().getString("item_cost.type", plugin.getConfig().getString("claim.item.type", "DIAMOND"));
@@ -109,6 +95,7 @@ public class SelectionService implements Listener {
                 ItemStack required = new ItemStack(mat, itemAmount);
                 if (!p.getInventory().containsAtLeast(required, itemAmount)) {
                     plugin.msg().send(p, "need_items", "{AMOUNT}", String.valueOf(itemAmount), "{ITEM}", itemType);
+                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
                     return;
                 }
                 p.getInventory().removeItem(required);
@@ -128,9 +115,8 @@ public class SelectionService implements Listener {
             plugin.msg().send(p, "items_deducted", "{AMOUNT}", String.valueOf(itemAmount), "{ITEM}", itemType);
         }
 
-        p.playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 0.7f);
+        p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1f, 0.9f); // page turn for claim
 
-        // optional lightning effect
         if (plugin.cfg().getBoolean("effects.on_claim.lightning_visual", true)) {
             p.getWorld().strikeLightningEffect(c1);
         }
@@ -143,10 +129,11 @@ public class SelectionService implements Listener {
         UUID id = p.getUniqueId();
         if (!plugin.store().hasPlot(id)) {
             plugin.msg().send(p, "no_plot_here");
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f); // fail page
             return;
         }
 
-        // Refund system: defaults first, then claim.*
+        // Refund system
         boolean refundEnabled = plugin.getConfig().getBoolean("refund_on_unclaim", plugin.getConfig().getBoolean("claim.refund_on_unclaim", false));
         int refundPercent = plugin.getConfig().getInt("refund_percent", plugin.getConfig().getInt("claim.refund_percent", 0));
         boolean useVault = plugin.getConfig().getBoolean("use_vault", plugin.getConfig().getBoolean("claim.use_vault", true));
@@ -171,9 +158,8 @@ public class SelectionService implements Listener {
             }
         }
 
-        // Remove plot
         plugin.store().removePlot(id);
         plugin.msg().send(p, "plot_unclaimed");
-        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_BREAK, 1f, 1f);
+        p.playSound(p.getLocation(), Sound.ITEM_BOOK_PUT, 1f, 0.8f); // closing book for unclaim
     }
 }
