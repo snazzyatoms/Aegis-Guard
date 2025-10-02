@@ -41,24 +41,42 @@ cannot_attack: "&c❌ You cannot attack players here!"
 
 # Trusted Players
 trusted_added: "&a✔ {PLAYER} is now trusted in your plot."
+trusted_added_target: "&a✔ You have been trusted by {PLAYER}!"
 trusted_removed: "&c❌ {PLAYER} is no longer trusted."
 trusted_self: "&c❌ You cannot trust yourself."
 trusted_already: "&c❌ {PLAYER} is already trusted."
 not_trusted: "&c❌ {PLAYER} is not trusted in your plot."
 
 # GUI
-menu_title: "&eAegisGuard Menu"
+menu_title: "&b⚔ Guardian Codex ⚔"
 trusted_menu_title: "&eTrusted Players"
+add_trusted_title: "&aAdd Trusted Player"
+
 button_add_trusted: "&aAdd Trusted"
 button_remove_trusted: "&cRemove Trusted"
-button_back: "&cBack"
+button_back: "&eBack"
 button_exit: "&cExit"
+button_info: "&6📖 Info & Guide"
 
 # Example: multi-line lore for trusted menu
 trusted_menu_lore:
   - "&7Trusted players can build and interact"
   - "&7but cannot unclaim or transfer land."
   - "&eAdd/remove trusted members below!"
+
+add_trusted_lore:
+  - "&7Pick a player from the online list"
+  - "&7Click their head to trust them"
+  - "&eOffline players can be added via chat"
+
+remove_trusted_lore:
+  - "&7Click a head to remove a trusted player"
+
+info_trusted_lore:
+  - "&7Trusted players can:"
+  - "&a✔ Build & interact"
+  - "&c✖ Not unclaim"
+  - "&c✖ Not transfer ownership"
 
 # Effects
 claim_effect: "&b⚡ Zeus blesses your land! A claim has been created."
