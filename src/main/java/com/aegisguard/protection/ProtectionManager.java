@@ -16,15 +16,7 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 
-import java.util.*;
-
-/**
- * ProtectionManager
- * - Enforces protections inside plots
- * - Supports toggles from GUI
- */
 public class ProtectionManager implements Listener {
 
     private final AegisGuard plugin;
@@ -69,7 +61,6 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(block.getLocation());
         if (plot == null) return;
 
-        // Container protection
         if (!canBuild(p, plot) && isContainer(block.getType())) {
             if (plot.getFlag("containers", true)) {
                 e.setCancelled(true);
@@ -126,10 +117,8 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(p.getLocation());
         if (plot == null) return;
 
-        if (plot.getFlag("mobs", true)) {
-            if (e.getEntity() instanceof Monster) {
-                e.setCancelled(true);
-            }
+        if (plot.getFlag("mobs", true) && e.getEntity() instanceof Monster) {
+            e.setCancelled(true);
         }
     }
 
@@ -162,63 +151,7 @@ public class ProtectionManager implements Listener {
     /* -----------------------------
      * Toggle Accessors for GUI
      * ----------------------------- */
-    public boolean isPvPEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("pvp", true);
-    }
 
-    public void togglePvP(Player player) {
-        toggleFlag(player, "pvp");
-    }
-
-    public boolean isContainersEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("containers", true);
-    }
-
-    public void toggleContainers(Player player) {
-        toggleFlag(player, "containers");
-    }
-
-    public boolean isMobProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("mobs", true);
-    }
-
-    public void toggleMobProtection(Player player) {
-        toggleFlag(player, "mobs");
-    }
-
-    public boolean isPetProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("pets", true);
-    }
-
-    public void togglePetProtection(Player player) {
-        toggleFlag(player, "pets");
-    }
-
-    public boolean isEntityProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("entities", true);
-    }
-
-    public void toggleEntityProtection(Player player) {
-        toggleFlag(player, "entities");
-    }
-
-    public boolean isFarmProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("farm", true);
-    }
-
-    public void toggleFarmProtection(Player player) {
-        toggleFlag(player, "farm");
-    }
-
-    /* -----------------------------
-     * Helpers
-     * ----------------------------- */
     private void toggleFlag(Player player, String flag) {
         PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
         if (plot == null) {
@@ -227,9 +160,50 @@ public class ProtectionManager implements Listener {
         }
         boolean current = plot.getFlag(flag, true);
         plot.setFlag(flag, !current);
-        player.sendMessage(ChatColor.YELLOW + "⚙ " + flag.toUpperCase() + " set to " + (!current));
+
+        String status = !current ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF";
+        player.sendMessage(ChatColor.YELLOW + "⚙ " + flag.toUpperCase() + " Protection is now " + status);
     }
 
+    public boolean isPvPEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("pvp", true);
+    }
+    public void togglePvP(Player player) { toggleFlag(player, "pvp"); }
+
+    public boolean isContainersEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("containers", true);
+    }
+    public void toggleContainers(Player player) { toggleFlag(player, "containers"); }
+
+    public boolean isMobProtectionEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("mobs", true);
+    }
+    public void toggleMobProtection(Player player) { toggleFlag(player, "mobs"); }
+
+    public boolean isPetProtectionEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("pets", true);
+    }
+    public void togglePetProtection(Player player) { toggleFlag(player, "pets"); }
+
+    public boolean isEntityProtectionEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("entities", true);
+    }
+    public void toggleEntityProtection(Player player) { toggleFlag(player, "entities"); }
+
+    public boolean isFarmProtectionEnabled(Player player) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
+        return plot != null && plot.getFlag("farm", true);
+    }
+    public void toggleFarmProtection(Player player) { toggleFlag(player, "farm"); }
+
+    /* -----------------------------
+     * Helpers
+     * ----------------------------- */
     private boolean canBuild(Player p, PlotStore.Plot plot) {
         if (p.hasPermission("aegisguard.admin")) return true;
         if (p.getUniqueId().equals(plot.getOwner())) return true;
@@ -237,15 +211,10 @@ public class ProtectionManager implements Listener {
     }
 
     private boolean isContainer(Material type) {
-        return type == Material.CHEST ||
-               type == Material.TRAPPED_CHEST ||
-               type == Material.BARREL ||
-               type == Material.FURNACE ||
-               type == Material.BLAST_FURNACE ||
-               type == Material.SMOKER ||
-               type == Material.HOPPER ||
-               type == Material.DROPPER ||
-               type == Material.DISPENSER ||
-               type == Material.SHULKER_BOX;
+        return switch (type) {
+            case CHEST, TRAPPED_CHEST, BARREL, FURNACE, BLAST_FURNACE,
+                 SMOKER, HOPPER, DROPPER, DISPENSER, SHULKER_BOX -> true;
+            default -> false;
+        };
     }
 }
