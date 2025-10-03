@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -67,7 +68,8 @@ public class ProtectionManager implements Listener {
         if (plot == null) return;
 
         if (!canBuild(p, plot) && isContainer(block.getType())) {
-            if (plot.getFlag("containers", true)) {
+            if (isWorldProtectionEnabled(block.getWorld().getName(), "container_protection") &&
+                plot.getFlag("containers", true)) {
                 e.setCancelled(true);
                 p.sendMessage(plugin.msg().get("cannot_interact"));
                 playEffect("containers", "deny", p, block.getLocation());
@@ -83,7 +85,8 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(victim.getLocation());
         if (plot == null) return;
 
-        if (plot.getFlag("pvp", true)) {
+        if (isWorldProtectionEnabled(victim.getWorld().getName(), "pvp_protection") &&
+            plot.getFlag("pvp", true)) {
             e.setCancelled(true);
             attacker.sendMessage(plugin.msg().get("cannot_attack"));
             playEffect("pvp", "deny", attacker, victim.getLocation());
@@ -99,7 +102,8 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(pet.getLocation());
         if (plot == null) return;
 
-        if (plot.getFlag("pets", true)) {
+        if (isWorldProtectionEnabled(pet.getWorld().getName(), "pets_protection") &&
+            plot.getFlag("pets", true)) {
             e.setCancelled(true);
             attacker.sendMessage(ChatColor.RED + "❌ You cannot hurt pets here!");
             playEffect("pets", "deny", attacker, pet.getLocation());
@@ -113,7 +117,8 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(stand.getLocation());
         if (plot == null) return;
 
-        if (plot.getFlag("entities", true) && !canBuild(p, plot)) {
+        if (isWorldProtectionEnabled(stand.getWorld().getName(), "entities_protection") &&
+            plot.getFlag("entities", true) && !canBuild(p, plot)) {
             e.setCancelled(true);
             p.sendMessage(ChatColor.RED + "❌ You cannot modify entities here!");
             playEffect("entities", "deny", p, stand.getLocation());
@@ -126,7 +131,8 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(p.getLocation());
         if (plot == null) return;
 
-        if (plot.getFlag("mobs", true) && e.getEntity() instanceof Monster) {
+        if (isWorldProtectionEnabled(p.getWorld().getName(), "mobs_protection") &&
+            plot.getFlag("mobs", true) && e.getEntity() instanceof Monster) {
             e.setCancelled(true);
         }
     }
@@ -137,7 +143,8 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(e.getLocation());
         if (plot == null) return;
 
-        if (plot.getFlag("mobs", true)) {
+        if (isWorldProtectionEnabled(e.getLocation().getWorld().getName(), "mobs_protection") &&
+            plot.getFlag("mobs", true)) {
             e.setCancelled(true);
         }
     }
@@ -151,7 +158,8 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(e.getClickedBlock().getLocation());
         if (plot == null) return;
 
-        if (plot.getFlag("farm", true)) {
+        if (isWorldProtectionEnabled(p.getWorld().getName(), "farm_protection") &&
+            plot.getFlag("farm", true)) {
             e.setCancelled(true);
             p.sendMessage(ChatColor.RED + "❌ Crops are protected here!");
             playEffect("farm", "deny", p, e.getClickedBlock().getLocation());
@@ -177,22 +185,28 @@ public class ProtectionManager implements Listener {
         playEffect(flag, "success", player, player.getLocation());
     }
 
-    public boolean isPvPEnabled(Player player) { return hasFlag(player, "pvp"); }
+    public boolean isPvPEnabled(Player player) { return hasFlag(player, "pvp") &&
+            isWorldProtectionEnabled(player.getWorld().getName(), "pvp_protection"); }
     public void togglePvP(Player player) { toggleFlag(player, "pvp"); }
 
-    public boolean isContainersEnabled(Player player) { return hasFlag(player, "containers"); }
+    public boolean isContainersEnabled(Player player) { return hasFlag(player, "containers") &&
+            isWorldProtectionEnabled(player.getWorld().getName(), "container_protection"); }
     public void toggleContainers(Player player) { toggleFlag(player, "containers"); }
 
-    public boolean isMobProtectionEnabled(Player player) { return hasFlag(player, "mobs"); }
+    public boolean isMobProtectionEnabled(Player player) { return hasFlag(player, "mobs") &&
+            isWorldProtectionEnabled(player.getWorld().getName(), "mobs_protection"); }
     public void toggleMobProtection(Player player) { toggleFlag(player, "mobs"); }
 
-    public boolean isPetProtectionEnabled(Player player) { return hasFlag(player, "pets"); }
+    public boolean isPetProtectionEnabled(Player player) { return hasFlag(player, "pets") &&
+            isWorldProtectionEnabled(player.getWorld().getName(), "pets_protection"); }
     public void togglePetProtection(Player player) { toggleFlag(player, "pets"); }
 
-    public boolean isEntityProtectionEnabled(Player player) { return hasFlag(player, "entities"); }
+    public boolean isEntityProtectionEnabled(Player player) { return hasFlag(player, "entities") &&
+            isWorldProtectionEnabled(player.getWorld().getName(), "entities_protection"); }
     public void toggleEntityProtection(Player player) { toggleFlag(player, "entities"); }
 
-    public boolean isFarmProtectionEnabled(Player player) { return hasFlag(player, "farm"); }
+    public boolean isFarmProtectionEnabled(Player player) { return hasFlag(player, "farm") &&
+            isWorldProtectionEnabled(player.getWorld().getName(), "farm_protection"); }
     public void toggleFarmProtection(Player player) { toggleFlag(player, "farm"); }
 
     /* -----------------------------
@@ -237,5 +251,17 @@ public class ProtectionManager implements Listener {
                  SMOKER, HOPPER, DROPPER, DISPENSER, SHULKER_BOX -> true;
             default -> false;
         };
+    }
+
+    /**
+     * Checks if a protection type is enabled in this world.
+     * Falls back to global protections if world not defined.
+     */
+    private boolean isWorldProtectionEnabled(String world, String key) {
+        ConfigurationSection perWorld = plugin.getConfig().getConfigurationSection("claims.per_world." + world + ".protections");
+        if (perWorld != null && perWorld.isBoolean(key)) {
+            return perWorld.getBoolean(key);
+        }
+        return plugin.getConfig().getBoolean("protections." + key, true);
     }
 }
