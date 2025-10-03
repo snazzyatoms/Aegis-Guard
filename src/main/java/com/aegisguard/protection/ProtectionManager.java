@@ -2,7 +2,6 @@ package com.aegisguard.protection;
 
 import com.aegisguard.AegisGuard;
 import com.aegisguard.data.PlotStore;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
@@ -37,7 +36,7 @@ public class ProtectionManager implements Listener {
 
         if (!canBuild(p, plot)) {
             e.setCancelled(true);
-            p.sendMessage(plugin.msg().get("cannot_break"));
+            plugin.msg().send(p, "cannot_break");
         }
     }
 
@@ -49,7 +48,7 @@ public class ProtectionManager implements Listener {
 
         if (!canBuild(p, plot)) {
             e.setCancelled(true);
-            p.sendMessage(plugin.msg().get("cannot_place"));
+            plugin.msg().send(p, "cannot_place");
         }
     }
 
@@ -64,7 +63,7 @@ public class ProtectionManager implements Listener {
         if (!canBuild(p, plot) && isContainer(block.getType())) {
             if (plot.getFlag("containers", true)) {
                 e.setCancelled(true);
-                p.sendMessage(plugin.msg().get("cannot_interact"));
+                plugin.msg().send(p, "cannot_interact");
             }
         }
     }
@@ -79,7 +78,7 @@ public class ProtectionManager implements Listener {
 
         if (plot.getFlag("pvp", true)) {
             e.setCancelled(true);
-            attacker.sendMessage(plugin.msg().get("cannot_attack"));
+            plugin.msg().send(attacker, "cannot_attack");
         }
     }
 
@@ -94,7 +93,7 @@ public class ProtectionManager implements Listener {
 
         if (plot.getFlag("pets", true)) {
             e.setCancelled(true);
-            attacker.sendMessage(ChatColor.RED + "❌ You cannot hurt pets here!");
+            plugin.msg().send(attacker, "cannot_attack"); // reuse general attack block
         }
     }
 
@@ -107,7 +106,7 @@ public class ProtectionManager implements Listener {
 
         if (plot.getFlag("entities", true) && !canBuild(p, plot)) {
             e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "❌ You cannot modify entities here!");
+            plugin.msg().send(p, "cannot_interact");
         }
     }
 
@@ -144,7 +143,7 @@ public class ProtectionManager implements Listener {
 
         if (plot.getFlag("farm", true)) {
             e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "❌ Crops are protected here!");
+            plugin.msg().send(p, "cannot_interact"); // unify farmland block msg
         }
     }
 
@@ -155,14 +154,15 @@ public class ProtectionManager implements Listener {
     private void toggleFlag(Player player, String flag) {
         PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
         if (plot == null) {
-            player.sendMessage(ChatColor.RED + "❌ You are not standing in your claim!");
+            plugin.msg().send(player, "must_select"); // fallback: not inside plot
             return;
         }
         boolean current = plot.getFlag(flag, true);
         plot.setFlag(flag, !current);
+        plugin.store().save();
 
-        String status = !current ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF";
-        player.sendMessage(ChatColor.YELLOW + "⚙ " + flag.toUpperCase() + " Protection is now " + status);
+        String state = !current ? "&aON" : "&cOFF";
+        player.sendMessage(plugin.msg().color("&e⚙ " + flag.toUpperCase() + " Protection: " + state));
     }
 
     public boolean isPvPEnabled(Player player) {
