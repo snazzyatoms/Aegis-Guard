@@ -62,11 +62,9 @@ button_settings: "&9Settings"
 button_info: "&6📖 Info & Guide"
 button_add_trusted: "&aAdd Trusted"
 button_remove_trusted: "&cRemove Trusted"
+button_roles: "&d🎭 Roles (Coming Soon)"
 button_back: "&eBack"
 button_exit: "&cExit"
-
-# Roles Placeholder (Future Feature)
-button_roles: "&d🎭 Roles (Coming Soon)"
 
 # Sound Buttons
 button_sounds_on: "&a🔊 Sounds: ON"
