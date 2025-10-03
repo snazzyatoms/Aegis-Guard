@@ -19,11 +19,28 @@ refund_percent: 0          # % refunded (0 = none, 50 = half, 100 = full)
 # Claims & Limits
 # ======================================
 claims:
-  max_claims_per_player: 1  # Maximum number of claims a player can own
-  min_radius: 1             # Minimum radius for a claim (in blocks)
-  max_radius: 32            # Maximum radius for a claim (in blocks)
-  max_area: 16000           # Maximum total claim area (blocks^2)
-  preview_seconds: 10       # How long (in seconds) a claim preview lasts
+  # --- Global Defaults ---
+  max_claims_per_player: 1   # Maximum number of claims a player can own (global)
+  min_radius: 1              # Minimum radius for a claim (in blocks)
+  max_radius: 32             # Maximum radius for a claim (in blocks)
+  max_area: 16000            # Maximum total claim area (blocks^2)
+  preview_seconds: 10        # How long (in seconds) a claim preview lasts
+
+  # --- Optional Per-World Settings ---
+  # If a world is listed here, its values override global defaults.
+  per_world:
+    world:                   # Example world name (replace with your actual world)
+      max_claims_per_player: 2
+      min_radius: 4
+      max_radius: 48
+      max_area: 25000
+    world_nether:
+      max_claims_per_player: 1
+      min_radius: 2
+      max_radius: 16
+      max_area: 8000
+    world_the_end:
+      max_claims_per_player: 0   # 0 = disable claims in this world
 
 # ======================================
 # Effects & Visuals
