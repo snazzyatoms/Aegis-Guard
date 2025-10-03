@@ -21,7 +21,7 @@ import java.util.UUID;
  * - Handles Aegis Scepter interactions
  * - Selects corners and creates plots
  * - Integrates VaultHook & refund system
- * - Reads defaults from config.yml
+ * - Reads defaults from config.yml (global + per-world)
  * - Supports multi-plot & claim limits
  */
 public class SelectionService implements Listener {
@@ -67,11 +67,14 @@ public class SelectionService implements Listener {
      * ----------------------------- */
     public void confirmClaim(Player p) {
         UUID id = p.getUniqueId();
+        String worldName = p.getWorld().getName();
 
-        // claim limit
-        int maxClaims = plugin.getConfig().getInt("claims.max_per_player", 1);
+        // --- Load per-world or global claim settings ---
+        int maxClaims = plugin.cfg().getInt("claims.per_world." + worldName + ".max_claims_per_player",
+                plugin.cfg().getInt("claims.max_claims_per_player", 1));
+
         int currentClaims = plugin.store().getPlots(id).size();
-        if (currentClaims >= maxClaims) {
+        if (currentClaims >= maxClaims && maxClaims > 0) {
             plugin.msg().send(p, "max_claims_reached", "{AMOUNT}", String.valueOf(maxClaims));
             plugin.sounds().playMenuClose(p);
             return;
@@ -83,11 +86,11 @@ public class SelectionService implements Listener {
             return;
         }
 
-        // Economy setup
-        boolean useVault = plugin.getConfig().getBoolean("use_vault", plugin.getConfig().getBoolean("claim.use_vault", true));
-        double cost = plugin.getConfig().getDouble("claim_cost", plugin.getConfig().getDouble("claim.cost", 0.0));
-        String itemType = plugin.getConfig().getString("item_cost.type", plugin.getConfig().getString("claim.item.type", "DIAMOND"));
-        int itemAmount = plugin.getConfig().getInt("item_cost.amount", plugin.getConfig().getInt("claim.item.amount", 0));
+        // --- Economy setup ---
+        boolean useVault = plugin.cfg().getBoolean("use_vault", true);
+        double cost = plugin.cfg().getDouble("claim_cost", 0.0);
+        String itemType = plugin.cfg().getString("item_cost.type", "DIAMOND");
+        int itemAmount = plugin.cfg().getInt("item_cost.amount", 0);
 
         if (useVault && cost > 0 && !plugin.vault().charge(p, cost)) {
             plugin.msg().send(p, "need_vault", "{AMOUNT}", String.valueOf(cost));
@@ -96,13 +99,12 @@ public class SelectionService implements Listener {
         } else if (!useVault && itemAmount > 0) {
             Material mat = Material.matchMaterial(itemType);
             if (mat != null) {
-                ItemStack required = new ItemStack(mat, itemAmount);
-                if (!p.getInventory().containsAtLeast(required, itemAmount)) {
+                if (!p.getInventory().containsAtLeast(new ItemStack(mat), itemAmount)) {
                     plugin.msg().send(p, "need_items", "{AMOUNT}", String.valueOf(itemAmount), "{ITEM}", itemType);
                     plugin.sounds().playMenuClose(p);
                     return;
                 }
-                p.getInventory().removeItem(required);
+                p.getInventory().removeItem(new ItemStack(mat, itemAmount));
             }
         }
 
@@ -140,12 +142,12 @@ public class SelectionService implements Listener {
         }
 
         // Refund system
-        boolean refundEnabled = plugin.getConfig().getBoolean("refund_on_unclaim", plugin.getConfig().getBoolean("claim.refund_on_unclaim", false));
-        int refundPercent = plugin.getConfig().getInt("refund_percent", plugin.getConfig().getInt("claim.refund_percent", 0));
-        boolean useVault = plugin.getConfig().getBoolean("use_vault", plugin.getConfig().getBoolean("claim.use_vault", true));
-        double vaultCost = plugin.getConfig().getDouble("claim_cost", plugin.getConfig().getDouble("claim.cost", 0.0));
-        String itemType = plugin.getConfig().getString("item_cost.type", plugin.getConfig().getString("claim.item.type", "DIAMOND"));
-        int itemAmount = plugin.getConfig().getInt("item_cost.amount", plugin.getConfig().getInt("claim.item.amount", 0));
+        boolean refundEnabled = plugin.cfg().getBoolean("refund_on_unclaim", false);
+        int refundPercent = plugin.cfg().getInt("refund_percent", 0);
+        boolean useVault = plugin.cfg().getBoolean("use_vault", true);
+        double vaultCost = plugin.cfg().getDouble("claim_cost", 0.0);
+        String itemType = plugin.cfg().getString("item_cost.type", "DIAMOND");
+        int itemAmount = plugin.cfg().getInt("item_cost.amount", 0);
 
         if (refundEnabled && refundPercent > 0) {
             if (useVault && vaultCost > 0) {
@@ -164,7 +166,7 @@ public class SelectionService implements Listener {
             }
         }
 
-        plugin.store().removePlot(plot.getOwner()); // remove that specific plot
+        plugin.store().removePlot(plot.getOwner(), plot.getPlotId());
         plugin.msg().send(p, "plot_unclaimed");
 
         plugin.sounds().playUnclaim(p);
