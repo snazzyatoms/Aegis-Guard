@@ -42,6 +42,14 @@ claims:
       max_radius: 48
       max_area: 25000
 
+      protections:            # Overworld-specific protections
+        pvp_protection: true
+        no_mobs_in_claims: true
+        container_protection: true
+        pets_protection: true
+        entities_protection: true
+        farm_protection: true
+
     world_nether:
       use_vault: false
       item_cost:
@@ -54,8 +62,24 @@ claims:
       max_radius: 16
       max_area: 8000
 
+      protections:            # Nether-specific protections (hard survival flavor)
+        pvp_protection: false        # PvP always ON in Nether
+        no_mobs_in_claims: false     # Mobs allowed in claims
+        container_protection: true
+        pets_protection: false       # Pets vulnerable
+        entities_protection: true
+        farm_protection: false       # Nether crops not protected
+
     world_the_end:
       max_claims_per_player: 0   # 0 = disable claims in this world
+
+      protections:            # End-specific protections (mystical flavor)
+        pvp_protection: true
+        no_mobs_in_claims: true
+        container_protection: false   # End containers open to all
+        pets_protection: false
+        entities_protection: true
+        farm_protection: false        # Farming irrelevant here
 
 # ======================================
 # Effects & Visuals
@@ -99,12 +123,15 @@ protection_effects:
     deny_particle: VILLAGER_ANGRY
 
 # ======================================
-# Protections
+# Protections (Global Defaults / Fallbacks)
 # ======================================
 protections:
   no_mobs_in_claims: true      # Prevent hostile mobs from spawning inside claims
   pvp_protection: true         # Disable PvP inside claims (trusted players exempt)
   container_protection: true   # Block non-trusted players from opening chests/furnaces
+  pets_protection: true
+  entities_protection: true
+  farm_protection: true
 
 # ======================================
 # Sounds & Immersion
