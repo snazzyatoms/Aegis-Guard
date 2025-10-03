@@ -7,74 +7,40 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.ItemFlag;
 
 import java.util.List;
 
 public class GUIManager {
 
     private final AegisGuard plugin;
+
+    // Sub GUIs
+    private final PlayerGUI playerGUI;
     private final TrustedGUI trustedGUI;
     private final SettingsGUI settingsGUI;
-    private final AdminGUI adminGUI;   // NEW
+    private final AdminGUI adminGUI;
 
     public GUIManager(AegisGuard plugin) {
         this.plugin = plugin;
+        this.playerGUI = new PlayerGUI(plugin);
         this.trustedGUI = new TrustedGUI(plugin);
         this.settingsGUI = new SettingsGUI(plugin);
-        this.adminGUI = new AdminGUI(plugin); // NEW
+        this.adminGUI = new AdminGUI(plugin);
     }
 
+    // Accessors
+    public PlayerGUI player() { return playerGUI; }
     public TrustedGUI trusted() { return trustedGUI; }
     public SettingsGUI settings() { return settingsGUI; }
     public AdminGUI admin() { return adminGUI; }
 
     /* -----------------------------
-     * Open Main Menu
+     * Open Main Menu (Player GUI wrapper)
      * ----------------------------- */
     public void openMain(Player player) {
-        String title = plugin.msg().get("menu_title");
-        Inventory inv = Bukkit.createInventory(null, 27, title);
-
-        inv.setItem(11, GUIManager.icon(
-                Material.LIGHTNING_ROD,
-                plugin.msg().get("button_claim_land"),
-                plugin.msg().getList("claim_land_lore")
-        ));
-
-        inv.setItem(13, GUIManager.icon(
-                Material.PLAYER_HEAD,
-                plugin.msg().get("button_trusted_players"),
-                plugin.msg().getList("trusted_players_lore")
-        ));
-
-        inv.setItem(15, GUIManager.icon(
-                Material.REDSTONE_COMPARATOR,
-                plugin.msg().get("button_settings"),
-                plugin.msg().getList("settings_lore")
-        ));
-
-        if (player.hasPermission("aegisguard.admin")) {
-            inv.setItem(22, GUIManager.icon(
-                    Material.NETHER_STAR,
-                    plugin.msg().get("button_admin_menu"),
-                    plugin.msg().getList("admin_menu_lore")
-            ));
-        } else {
-            inv.setItem(22, GUIManager.icon(
-                    Material.WRITABLE_BOOK,
-                    plugin.msg().get("button_info"),
-                    plugin.msg().getList("info_lore")
-            ));
-        }
-
-        inv.setItem(26, GUIManager.icon(
-                Material.BARRIER,
-                plugin.msg().get("button_exit"),
-                plugin.msg().getList("exit_lore")
-        ));
-
-        player.openInventory(inv);
-        plugin.sounds().playMenuOpen(player);
+        playerGUI.open(player); // delegate to PlayerGUI
     }
 
     /* -----------------------------
@@ -82,40 +48,24 @@ public class GUIManager {
      * ----------------------------- */
     public void handleClick(Player player, InventoryClickEvent e) {
         e.setCancelled(true);
-        if (e.getCurrentItem() == null) return;
 
-        Material type = e.getCurrentItem().getType();
+        if (e.getCurrentItem() == null) return;
         String title = e.getView().getTitle();
 
+        // Route clicks to the right sub-GUI
         if (title.equals(plugin.msg().get("menu_title"))) {
-            switch (type) {
-                case LIGHTNING_ROD -> {
-                    player.closeInventory();
-                    plugin.selection().confirmClaim(player);
-                    plugin.sounds().playMenuFlip(player);
-                }
-                case PLAYER_HEAD -> {
-                    trustedGUI.open(player);
-                    plugin.sounds().playMenuFlip(player);
-                }
-                case REDSTONE_COMPARATOR -> {
-                    settingsGUI.open(player);
-                }
-                case NETHER_STAR -> {
-                    if (player.hasPermission("aegisguard.admin")) {
-                        adminGUI.open(player);
-                        plugin.sounds().playMenuFlip(player);
-                    }
-                }
-                case WRITABLE_BOOK -> {
-                    player.sendMessage(plugin.msg().get("info_message"));
-                    plugin.sounds().playMenuFlip(player);
-                }
-                case BARRIER -> {
-                    player.closeInventory();
-                    plugin.sounds().playMenuClose(player);
-                }
-            }
+            playerGUI.handleClick(player, e);
+        } 
+        else if (title.equals(plugin.msg().get("trusted_menu_title")) 
+              || title.equals(plugin.msg().get("add_trusted_title")) 
+              || title.equals(plugin.msg().get("remove_trusted_title"))) {
+            trustedGUI.handleClick(player, e);
+        }
+        else if (title.equals(plugin.msg().get("settings_menu_title"))) {
+            settingsGUI.handleClick(player, e);
+        }
+        else if (title.equals(plugin.msg().get("admin_menu_title"))) {
+            adminGUI.handleClick(player, e);
         }
     }
 
@@ -124,11 +74,11 @@ public class GUIManager {
      * ----------------------------- */
     public static ItemStack icon(Material mat, String name, List<String> lore) {
         ItemStack item = new ItemStack(mat);
-        var meta = item.getItemMeta();
+        ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
             if (lore != null) meta.setLore(lore);
-            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES);
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
             item.setItemMeta(meta);
         }
         return item;
