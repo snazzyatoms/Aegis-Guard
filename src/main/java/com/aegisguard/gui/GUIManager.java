@@ -14,16 +14,19 @@ public class GUIManager {
 
     private final AegisGuard plugin;
     private final TrustedGUI trustedGUI;
-    private final SettingsGUI settingsGUI;   // NEW
+    private final SettingsGUI settingsGUI;
+    private final AdminGUI adminGUI;   // NEW
 
     public GUIManager(AegisGuard plugin) {
         this.plugin = plugin;
         this.trustedGUI = new TrustedGUI(plugin);
-        this.settingsGUI = new SettingsGUI(plugin); // NEW
+        this.settingsGUI = new SettingsGUI(plugin);
+        this.adminGUI = new AdminGUI(plugin); // NEW
     }
 
     public TrustedGUI trusted() { return trustedGUI; }
     public SettingsGUI settings() { return settingsGUI; }
+    public AdminGUI admin() { return adminGUI; }
 
     /* -----------------------------
      * Open Main Menu
@@ -50,11 +53,19 @@ public class GUIManager {
                 plugin.msg().getList("settings_lore")
         ));
 
-        inv.setItem(22, GUIManager.icon(
-                Material.WRITABLE_BOOK,
-                plugin.msg().get("button_info"),
-                plugin.msg().getList("info_lore")
-        ));
+        if (player.hasPermission("aegisguard.admin")) {
+            inv.setItem(22, GUIManager.icon(
+                    Material.NETHER_STAR,
+                    plugin.msg().get("button_admin_menu"),
+                    plugin.msg().getList("admin_menu_lore")
+            ));
+        } else {
+            inv.setItem(22, GUIManager.icon(
+                    Material.WRITABLE_BOOK,
+                    plugin.msg().get("button_info"),
+                    plugin.msg().getList("info_lore")
+            ));
+        }
 
         inv.setItem(26, GUIManager.icon(
                 Material.BARRIER,
@@ -88,7 +99,13 @@ public class GUIManager {
                     plugin.sounds().playMenuFlip(player);
                 }
                 case REDSTONE_COMPARATOR -> {
-                    settingsGUI.open(player); // DELEGATED TO NEW FILE
+                    settingsGUI.open(player);
+                }
+                case NETHER_STAR -> {
+                    if (player.hasPermission("aegisguard.admin")) {
+                        adminGUI.open(player);
+                        plugin.sounds().playMenuFlip(player);
+                    }
                 }
                 case WRITABLE_BOOK -> {
                     player.sendMessage(plugin.msg().get("info_message"));
