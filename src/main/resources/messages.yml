@@ -54,6 +54,7 @@ trusted_menu_title: "&eTrusted Players"
 add_trusted_title: "&aAdd Trusted Player"
 remove_trusted_title: "&cRemove Trusted Player"
 settings_menu_title: "&9⚙ Settings"
+admin_menu_title: "&c⚙ Admin Controls"   # NEW
 
 # GUI Buttons
 button_claim_land: "&aClaim Land"
@@ -66,6 +67,9 @@ button_roles: "&d🎭 Roles (Coming Soon)"
 button_back: "&eBack"
 button_exit: "&cExit"
 
+# Admin Menu Button
+button_admin_menu: "&c[Admin] Open Admin Menu"   # NEW
+
 # Sound Buttons
 button_sounds_on: "&a🔊 Sounds: ON"
 button_sounds_off: "&c🔇 Sounds: OFF"
@@ -74,19 +78,14 @@ button_sounds_disabled_global: "&7🔇 Sounds Disabled (Global)"
 # Protection Toggles - Buttons
 button_pvp_on: "&a⚔ PvP Protection: ON"
 button_pvp_off: "&c⚔ PvP Protection: OFF"
-
 button_containers_on: "&a📦 Container Protection: ON"
 button_containers_off: "&c📦 Container Protection: OFF"
-
 button_mobs_on: "&a🧟 Mob Protection: ON"
 button_mobs_off: "&c🧟 Mob Protection: OFF"
-
 button_pets_on: "&a🐾 Pet Protection: ON"
 button_pets_off: "&c🐾 Pet Protection: OFF"
-
 button_entity_on: "&a🛡 Entity Protection: ON"
 button_entity_off: "&c🛡 Entity Protection: OFF"
-
 button_farm_on: "&a🌾 Farm Protection: ON"
 button_farm_off: "&c🌾 Farm Protection: OFF"
 
@@ -125,6 +124,11 @@ roles_lore:
   - "&8(e.g. Builder, Visitor, Redstone, etc.)"
   - "&c⚠ Not yet available"
   - "&e📌 This feature will be added in a future update"
+
+# Admin Menu Lore
+admin_menu_lore:   # NEW
+  - "&7Exclusive admin controls for managing AegisGuard"
+  - "&7Toggle bans, bypasses, broadcasts, etc."
 
 # Admin Lore
 admin_auto_remove_lore:
