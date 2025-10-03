@@ -41,7 +41,7 @@ public class ProtectionManager implements Listener {
         if (!canBuild(p, plot)) {
             e.setCancelled(true);
             p.sendMessage(plugin.msg().get("cannot_break"));
-            denyEffect(p, e.getBlock().getLocation());
+            playEffect("build", "deny", p, e.getBlock().getLocation());
         }
     }
 
@@ -54,7 +54,7 @@ public class ProtectionManager implements Listener {
         if (!canBuild(p, plot)) {
             e.setCancelled(true);
             p.sendMessage(plugin.msg().get("cannot_place"));
-            denyEffect(p, e.getBlock().getLocation());
+            playEffect("build", "deny", p, e.getBlock().getLocation());
         }
     }
 
@@ -70,7 +70,7 @@ public class ProtectionManager implements Listener {
             if (plot.getFlag("containers", true)) {
                 e.setCancelled(true);
                 p.sendMessage(plugin.msg().get("cannot_interact"));
-                denyEffect(p, block.getLocation());
+                playEffect("containers", "deny", p, block.getLocation());
             }
         }
     }
@@ -86,7 +86,7 @@ public class ProtectionManager implements Listener {
         if (plot.getFlag("pvp", true)) {
             e.setCancelled(true);
             attacker.sendMessage(plugin.msg().get("cannot_attack"));
-            denyEffect(attacker, victim.getLocation());
+            playEffect("pvp", "deny", attacker, victim.getLocation());
         }
     }
 
@@ -102,7 +102,7 @@ public class ProtectionManager implements Listener {
         if (plot.getFlag("pets", true)) {
             e.setCancelled(true);
             attacker.sendMessage(ChatColor.RED + "❌ You cannot hurt pets here!");
-            denyEffect(attacker, pet.getLocation());
+            playEffect("pets", "deny", attacker, pet.getLocation());
         }
     }
 
@@ -116,7 +116,7 @@ public class ProtectionManager implements Listener {
         if (plot.getFlag("entities", true) && !canBuild(p, plot)) {
             e.setCancelled(true);
             p.sendMessage(ChatColor.RED + "❌ You cannot modify entities here!");
-            denyEffect(p, stand.getLocation());
+            playEffect("entities", "deny", p, stand.getLocation());
         }
     }
 
@@ -154,7 +154,7 @@ public class ProtectionManager implements Listener {
         if (plot.getFlag("farm", true)) {
             e.setCancelled(true);
             p.sendMessage(ChatColor.RED + "❌ Crops are protected here!");
-            denyEffect(p, e.getClickedBlock().getLocation());
+            playEffect("farm", "deny", p, e.getClickedBlock().getLocation());
         }
     }
 
@@ -166,7 +166,7 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
         if (plot == null) {
             player.sendMessage(ChatColor.RED + "❌ You are not standing in your claim!");
-            failEffect(player);
+            playEffect(flag, "fail", player, player.getLocation());
             return;
         }
         boolean current = plot.getFlag(flag, true);
@@ -174,71 +174,47 @@ public class ProtectionManager implements Listener {
 
         String status = !current ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF";
         player.sendMessage(ChatColor.YELLOW + "⚙ " + flag.toUpperCase() + " Protection is now " + status);
-        successEffect(player);
+        playEffect(flag, "success", player, player.getLocation());
     }
 
-    public boolean isPvPEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("pvp", true);
-    }
+    public boolean isPvPEnabled(Player player) { return hasFlag(player, "pvp"); }
     public void togglePvP(Player player) { toggleFlag(player, "pvp"); }
 
-    public boolean isContainersEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("containers", true);
-    }
+    public boolean isContainersEnabled(Player player) { return hasFlag(player, "containers"); }
     public void toggleContainers(Player player) { toggleFlag(player, "containers"); }
 
-    public boolean isMobProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("mobs", true);
-    }
+    public boolean isMobProtectionEnabled(Player player) { return hasFlag(player, "mobs"); }
     public void toggleMobProtection(Player player) { toggleFlag(player, "mobs"); }
 
-    public boolean isPetProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("pets", true);
-    }
+    public boolean isPetProtectionEnabled(Player player) { return hasFlag(player, "pets"); }
     public void togglePetProtection(Player player) { toggleFlag(player, "pets"); }
 
-    public boolean isEntityProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("entities", true);
-    }
+    public boolean isEntityProtectionEnabled(Player player) { return hasFlag(player, "entities"); }
     public void toggleEntityProtection(Player player) { toggleFlag(player, "entities"); }
 
-    public boolean isFarmProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("farm", true);
-    }
+    public boolean isFarmProtectionEnabled(Player player) { return hasFlag(player, "farm"); }
     public void toggleFarmProtection(Player player) { toggleFlag(player, "farm"); }
 
     /* -----------------------------
-     * Effects (Config-driven)
+     * Effects (Config-driven, per-protection)
      * ----------------------------- */
 
-    private void denyEffect(Player p, Location loc) {
+    private void playEffect(String category, String type, Player p, Location loc) {
         if (!plugin.getConfig().getBoolean("protection_effects.enabled", true)) return;
-        Sound sound = Sound.valueOf(plugin.getConfig().getString("protection_effects.deny_sound", "BLOCK_NOTE_BLOCK_BASS"));
-        Particle particle = Particle.valueOf(plugin.getConfig().getString("protection_effects.deny_particle", "SMOKE_NORMAL"));
-        p.playSound(loc, sound, 1f, 0.6f);
-        loc.getWorld().spawnParticle(particle, loc.clone().add(0.5, 1, 0.5), 8, 0.3, 0.3, 0.3, 0.01);
-    }
 
-    private void successEffect(Player p) {
-        if (!plugin.getConfig().getBoolean("protection_effects.enabled", true)) return;
-        Sound sound = Sound.valueOf(plugin.getConfig().getString("protection_effects.success_sound", "ENTITY_EXPERIENCE_ORB_PICKUP"));
-        Particle particle = Particle.valueOf(plugin.getConfig().getString("protection_effects.success_particle", "VILLAGER_HAPPY"));
-        p.playSound(p.getLocation(), sound, 1f, 1.2f);
-        p.getWorld().spawnParticle(particle, p.getLocation().add(0, 1, 0), 12, 0.5, 0.5, 0.5, 0.1);
-    }
+        String base = "protection_effects." + category + "." + type + "_";
+        String def = "protection_effects." + type + "_";
 
-    private void failEffect(Player p) {
-        if (!plugin.getConfig().getBoolean("protection_effects.enabled", true)) return;
-        Sound sound = Sound.valueOf(plugin.getConfig().getString("protection_effects.fail_sound", "BLOCK_ANVIL_LAND"));
-        Particle particle = Particle.valueOf(plugin.getConfig().getString("protection_effects.fail_particle", "SMOKE_NORMAL"));
-        p.playSound(p.getLocation(), sound, 1f, 0.8f);
-        p.getWorld().spawnParticle(particle, p.getLocation().add(0, 1, 0), 12, 0.5, 0.5, 0.5, 0.05);
+        String soundKey = plugin.getConfig().getString(base + "sound",
+                plugin.getConfig().getString(def + "sound", "BLOCK_NOTE_BLOCK_BASS"));
+        String particleKey = plugin.getConfig().getString(base + "particle",
+                plugin.getConfig().getString(def + "particle", "SMOKE_NORMAL"));
+
+        Sound sound = Sound.valueOf(soundKey);
+        Particle particle = Particle.valueOf(particleKey);
+
+        p.playSound(loc, sound, 1f, 1f);
+        loc.getWorld().spawnParticle(particle, loc.clone().add(0.5, 1, 0.5), 10, 0.3, 0.3, 0.3, 0.05);
     }
 
     /* -----------------------------
@@ -248,6 +224,11 @@ public class ProtectionManager implements Listener {
         if (p.hasPermission("aegisguard.admin")) return true;
         if (p.getUniqueId().equals(plot.getOwner())) return true;
         return plot.getTrusted().contains(p.getUniqueId());
+    }
+
+    private boolean hasFlag(Player p, String flag) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(p.getLocation());
+        return plot != null && plot.getFlag(flag, true);
     }
 
     private boolean isContainer(Material type) {
