@@ -3,7 +3,7 @@
 # ======================================
 
 # ======================================
-# Economy
+# Economy (Global Defaults)
 # ======================================
 use_vault: true            # true = use Vault currency, false = item cost
 claim_cost: 100.0          # Vault cost per claim (only if use_vault = true)
@@ -29,16 +29,31 @@ claims:
   # --- Optional Per-World Settings ---
   # If a world is listed here, its values override global defaults.
   per_world:
-    world:                   # Example world name (replace with your actual world)
+    world:                   # Example overworld
+      use_vault: true
+      vault_cost: 200.0
+      item_cost:
+        type: EMERALD
+        amount: 10
+      refund_on_unclaim: true
+      refund_percent: 50
       max_claims_per_player: 2
       min_radius: 4
       max_radius: 48
       max_area: 25000
+
     world_nether:
+      use_vault: false
+      item_cost:
+        type: GOLD_INGOT
+        amount: 20
+      refund_on_unclaim: false
+      refund_percent: 0
       max_claims_per_player: 1
       min_radius: 2
       max_radius: 16
       max_area: 8000
+
     world_the_end:
       max_claims_per_player: 0   # 0 = disable claims in this world
 
