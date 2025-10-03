@@ -86,11 +86,18 @@ public class SelectionService implements Listener {
             return;
         }
 
-        // --- Economy setup ---
-        boolean useVault = plugin.cfg().getBoolean("use_vault", true);
-        double cost = plugin.cfg().getDouble("claim_cost", 0.0);
-        String itemType = plugin.cfg().getString("item_cost.type", "DIAMOND");
-        int itemAmount = plugin.cfg().getInt("item_cost.amount", 0);
+        // --- Economy setup (per-world > global) ---
+        boolean useVault = plugin.cfg().getBoolean("claims.per_world." + worldName + ".use_vault",
+                plugin.cfg().getBoolean("use_vault", true));
+
+        double cost = plugin.cfg().getDouble("claims.per_world." + worldName + ".vault_cost",
+                plugin.cfg().getDouble("claim_cost", 0.0));
+
+        String itemType = plugin.cfg().getString("claims.per_world." + worldName + ".item_cost.type",
+                plugin.cfg().getString("item_cost.type", "DIAMOND"));
+
+        int itemAmount = plugin.cfg().getInt("claims.per_world." + worldName + ".item_cost.amount",
+                plugin.cfg().getInt("item_cost.amount", 0));
 
         if (useVault && cost > 0 && !plugin.vault().charge(p, cost)) {
             plugin.msg().send(p, "need_vault", "{AMOUNT}", String.valueOf(cost));
@@ -141,13 +148,26 @@ public class SelectionService implements Listener {
             return;
         }
 
-        // Refund system
-        boolean refundEnabled = plugin.cfg().getBoolean("refund_on_unclaim", false);
-        int refundPercent = plugin.cfg().getInt("refund_percent", 0);
-        boolean useVault = plugin.cfg().getBoolean("use_vault", true);
-        double vaultCost = plugin.cfg().getDouble("claim_cost", 0.0);
-        String itemType = plugin.cfg().getString("item_cost.type", "DIAMOND");
-        int itemAmount = plugin.cfg().getInt("item_cost.amount", 0);
+        String worldName = p.getWorld().getName();
+
+        // Refund system (per-world > global)
+        boolean refundEnabled = plugin.cfg().getBoolean("claims.per_world." + worldName + ".refund_on_unclaim",
+                plugin.cfg().getBoolean("refund_on_unclaim", false));
+
+        int refundPercent = plugin.cfg().getInt("claims.per_world." + worldName + ".refund_percent",
+                plugin.cfg().getInt("refund_percent", 0));
+
+        boolean useVault = plugin.cfg().getBoolean("claims.per_world." + worldName + ".use_vault",
+                plugin.cfg().getBoolean("use_vault", true));
+
+        double vaultCost = plugin.cfg().getDouble("claims.per_world." + worldName + ".vault_cost",
+                plugin.cfg().getDouble("claim_cost", 0.0));
+
+        String itemType = plugin.cfg().getString("claims.per_world." + worldName + ".item_cost.type",
+                plugin.cfg().getString("item_cost.type", "DIAMOND"));
+
+        int itemAmount = plugin.cfg().getInt("claims.per_world." + worldName + ".item_cost.amount",
+                plugin.cfg().getInt("item_cost.amount", 0));
 
         if (refundEnabled && refundPercent > 0) {
             if (useVault && vaultCost > 0) {
