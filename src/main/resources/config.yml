@@ -30,6 +30,16 @@ effects:
     lightning_visual: true   # Strike lightning effect when a claim is made
     particle: TOTEM          # Particle effect when claiming (TOTEM, FLAME, HEART, etc.)
 
+# New protection feedback effects
+protection_effects:
+  enabled: true
+  deny_sound: BLOCK_NOTE_BLOCK_BASS
+  deny_particle: SMOKE_NORMAL
+  success_sound: ENTITY_EXPERIENCE_ORB_PICKUP
+  success_particle: VILLAGER_HAPPY
+  fail_sound: BLOCK_ANVIL_LAND
+  fail_particle: SMOKE_NORMAL
+
 # ======================================
 # Protections
 # ======================================
