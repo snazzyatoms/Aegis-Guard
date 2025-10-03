@@ -68,11 +68,11 @@ public class TrustedGUI {
                 plugin.msg().getList("remove_trusted_lore")
         ));
 
-        // Roles (Future Placeholder)
+        // Roles (Future Placeholder – decorative only)
         inv.setItem(47, GUIManager.icon(
                 Material.NAME_TAG,
                 plugin.msg().get("button_roles"),
-                plugin.msg().getList("roles_lore") // uses new lore from messages.yml
+                plugin.msg().getList("roles_lore") // “coming soon” placeholder lore
         ));
 
         // Info & Guide
@@ -179,8 +179,7 @@ public class TrustedGUI {
                     plugin.sounds().playMenuFlip(player);
                 }
                 case NAME_TAG -> {
-                    // Roles placeholder
-                    player.sendMessage(plugin.msg().color("&d🎭 Roles are not yet available. Coming soon!"));
+                    // Roles placeholder: decorative only, no chat, just subtle "fail" sound
                     plugin.sounds().playMenuClose(player);
                 }
                 case ARROW -> {
