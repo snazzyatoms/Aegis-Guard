@@ -72,7 +72,7 @@ public class TrustedGUI {
         inv.setItem(47, GUIManager.icon(
                 Material.NAME_TAG,
                 plugin.msg().get("button_roles"),
-                plugin.msg().getList("roles_lore")
+                plugin.msg().getList("roles_lore") // uses new lore from messages.yml
         ));
 
         // Info & Guide
@@ -179,8 +179,9 @@ public class TrustedGUI {
                     plugin.sounds().playMenuFlip(player);
                 }
                 case NAME_TAG -> {
-                    // Roles placeholder (no action, just a placeholder item)
-                    plugin.sounds().playMenuFlip(player); // just feedback
+                    // Roles placeholder
+                    player.sendMessage(plugin.msg().color("&d🎭 Roles are not yet available. Coming soon!"));
+                    plugin.sounds().playMenuClose(player);
                 }
                 case ARROW -> {
                     plugin.gui().openMain(player);
