@@ -4,6 +4,7 @@ import com.aegisguard.AegisGuard;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -20,34 +21,57 @@ public class AdminGUI {
     }
 
     public void open(Player player) {
+        if (!player.hasPermission("aegisguard.admin")) return;
+
         Inventory inv = Bukkit.createInventory(null, 27, plugin.msg().get("admin_menu_title"));
 
-        boolean autoRemove = plugin.getConfig().getBoolean("admin.auto_remove_banned", false);
-        inv.setItem(10, createItem(
-                autoRemove ? Material.TNT : Material.GUNPOWDER,
+        inv.setItem(10, createItem(Material.TNT,
                 plugin.msg().get("button_admin_auto_remove"),
-                plugin.msg().getList("admin_auto_remove_lore")
-        ));
+                plugin.msg().getList("admin_auto_remove_lore")));
 
-        boolean bypassLimit = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
-        inv.setItem(12, createItem(
-                bypassLimit ? Material.NETHER_STAR : Material.REDSTONE,
+        inv.setItem(12, createItem(Material.NETHER_STAR,
                 plugin.msg().get("button_admin_bypass_limit"),
-                plugin.msg().getList("admin_bypass_limit_lore")
-        ));
+                plugin.msg().getList("admin_bypass_limit_lore")));
 
-        boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false);
-        inv.setItem(14, createItem(
-                broadcast ? Material.BEACON : Material.ENDER_EYE,
+        inv.setItem(14, createItem(Material.BEACON,
                 plugin.msg().get("button_admin_broadcast"),
-                plugin.msg().getList("admin_broadcast_lore")
-        ));
+                plugin.msg().getList("admin_broadcast_lore")));
 
-        // Navigation
-        inv.setItem(22, createItem(Material.ARROW, plugin.msg().get("button_back"), plugin.msg().getList("back_lore")));
+        inv.setItem(22, createItem(Material.BARRIER,
+                plugin.msg().get("button_exit"),
+                plugin.msg().getList("exit_lore")));
 
         player.openInventory(inv);
         plugin.sounds().playMenuOpen(player);
+    }
+
+    public void handleClick(Player player, InventoryClickEvent e) {
+        Material type = e.getCurrentItem().getType();
+        switch (type) {
+            case TNT -> {
+                boolean autoRemove = plugin.getConfig().getBoolean("admin.auto_remove_banned", false);
+                plugin.getConfig().set("admin.auto_remove_banned", !autoRemove);
+                plugin.saveConfig();
+                player.sendMessage(plugin.msg().get(!autoRemove ? "admin_auto_remove_enabled" : "admin_auto_remove_disabled"));
+            }
+            case NETHER_STAR -> {
+                boolean bypass = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
+                plugin.getConfig().set("admin.bypass_claim_limit", !bypass);
+                plugin.saveConfig();
+                player.sendMessage(plugin.msg().get(!bypass ? "admin_bypass_enabled" : "admin_bypass_disabled"));
+            }
+            case BEACON -> {
+                boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false);
+                plugin.getConfig().set("admin.broadcast_admin_actions", !broadcast);
+                plugin.saveConfig();
+                player.sendMessage(plugin.msg().get(!broadcast ? "admin_broadcast_enabled" : "admin_broadcast_disabled"));
+            }
+            case BARRIER -> {
+                player.closeInventory();
+                plugin.sounds().playMenuClose(player);
+            }
+        }
+        open(player); // refresh
     }
 
     private ItemStack createItem(Material mat, String name, List<String> lore) {
