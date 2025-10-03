@@ -32,5 +32,8 @@ public class GUIListener implements Listener {
         else if (title.equals(plugin.msg().get("settings_menu_title"))) {
             plugin.gui().settings().handleClick(player, e);
         }
+        else if (title.equals(plugin.msg().get("admin_menu_title"))) {
+            plugin.gui().admin().handleClick(player, e);
+        }
     }
 }
