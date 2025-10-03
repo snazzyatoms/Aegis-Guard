@@ -65,6 +65,9 @@ button_remove_trusted: "&cRemove Trusted"
 button_back: "&eBack"
 button_exit: "&cExit"
 
+# Roles Placeholder (Future Feature)
+button_roles: "&d🎭 Roles (Coming Soon)"
+
 # Sound Buttons
 button_sounds_on: "&a🔊 Sounds: ON"
 button_sounds_off: "&c🔇 Sounds: OFF"
@@ -116,6 +119,14 @@ info_lore:
 
 exit_lore:
   - "&7Close the Guardian Codex"
+
+# Roles Placeholder Lore
+roles_lore:
+  - "&7Assign trusted players different roles"
+  - "&7to restrict or allow specific actions"
+  - "&8(e.g. Builder, Visitor, Redstone, etc.)"
+  - "&c⚠ Not yet available"
+  - "&e📌 This feature will be added in a future update"
 
 # Admin Lore
 admin_auto_remove_lore:
