@@ -1,7 +1,9 @@
 # ======================================
 # AegisGuard v1.0 - Config
 # ======================================
-# Quick Defaults
+
+# ======================================
+# Economy
 # ======================================
 use_vault: true            # true = use Vault currency, false = item cost
 claim_cost: 100.0          # Vault cost per claim (only if use_vault = true)
@@ -14,9 +16,10 @@ refund_on_unclaim: false   # true = give players refunds when unclaiming
 refund_percent: 0          # % refunded (0 = none, 50 = half, 100 = full)
 
 # ======================================
-# Claiming & Limits
+# Claims & Limits
 # ======================================
-limits:
+claims:
+  max_claims_per_player: 1  # Maximum number of claims a player can own
   min_radius: 1             # Minimum radius for a claim (in blocks)
   max_radius: 32            # Maximum radius for a claim (in blocks)
   max_area: 16000           # Maximum total claim area (blocks^2)
