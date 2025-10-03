@@ -2,7 +2,7 @@ package com.aegisguard.protection;
 
 import com.aegisguard.AegisGuard;
 import com.aegisguard.data.PlotStore;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -37,6 +37,7 @@ public class ProtectionManager implements Listener {
         if (!canBuild(p, plot)) {
             e.setCancelled(true);
             plugin.msg().send(p, "cannot_break");
+            denyEffect(p, e.getBlock().getLocation());
         }
     }
 
@@ -49,6 +50,7 @@ public class ProtectionManager implements Listener {
         if (!canBuild(p, plot)) {
             e.setCancelled(true);
             plugin.msg().send(p, "cannot_place");
+            denyEffect(p, e.getBlock().getLocation());
         }
     }
 
@@ -64,6 +66,7 @@ public class ProtectionManager implements Listener {
             if (plot.getFlag("containers", true)) {
                 e.setCancelled(true);
                 plugin.msg().send(p, "cannot_interact");
+                denyEffect(p, block.getLocation());
             }
         }
     }
@@ -79,6 +82,7 @@ public class ProtectionManager implements Listener {
         if (plot.getFlag("pvp", true)) {
             e.setCancelled(true);
             plugin.msg().send(attacker, "cannot_attack");
+            denyEffect(attacker, victim.getLocation());
         }
     }
 
@@ -93,7 +97,8 @@ public class ProtectionManager implements Listener {
 
         if (plot.getFlag("pets", true)) {
             e.setCancelled(true);
-            plugin.msg().send(attacker, "cannot_attack"); // reuse general attack block
+            plugin.msg().send(attacker, "cannot_attack");
+            denyEffect(attacker, pet.getLocation());
         }
     }
 
@@ -107,6 +112,7 @@ public class ProtectionManager implements Listener {
         if (plot.getFlag("entities", true) && !canBuild(p, plot)) {
             e.setCancelled(true);
             plugin.msg().send(p, "cannot_interact");
+            denyEffect(p, stand.getLocation());
         }
     }
 
@@ -143,7 +149,8 @@ public class ProtectionManager implements Listener {
 
         if (plot.getFlag("farm", true)) {
             e.setCancelled(true);
-            plugin.msg().send(p, "cannot_interact"); // unify farmland block msg
+            plugin.msg().send(p, "cannot_interact");
+            denyEffect(p, e.getClickedBlock().getLocation());
         }
     }
 
@@ -154,56 +161,48 @@ public class ProtectionManager implements Listener {
     private void toggleFlag(Player player, String flag) {
         PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
         if (plot == null) {
-            plugin.msg().send(player, "must_select"); // fallback: not inside plot
+            plugin.msg().send(player, "must_select");
             return;
         }
         boolean current = plot.getFlag(flag, true);
         plot.setFlag(flag, !current);
         plugin.store().save();
 
-        String state = !current ? "&aON" : "&cOFF";
-        player.sendMessage(plugin.msg().color("&e⚙ " + flag.toUpperCase() + " Protection: " + state));
+        if (!current) {
+            successEffect(player);
+            player.sendMessage(plugin.msg().color("&e⚙ " + flag.toUpperCase() + " Protection: &aON"));
+        } else {
+            failEffect(player);
+            player.sendMessage(plugin.msg().color("&e⚙ " + flag.toUpperCase() + " Protection: &cOFF"));
+        }
     }
 
-    public boolean isPvPEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("pvp", true);
-    }
+    public boolean isPvPEnabled(Player player) { return checkFlag(player, "pvp"); }
     public void togglePvP(Player player) { toggleFlag(player, "pvp"); }
 
-    public boolean isContainersEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("containers", true);
-    }
+    public boolean isContainersEnabled(Player player) { return checkFlag(player, "containers"); }
     public void toggleContainers(Player player) { toggleFlag(player, "containers"); }
 
-    public boolean isMobProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("mobs", true);
-    }
+    public boolean isMobProtectionEnabled(Player player) { return checkFlag(player, "mobs"); }
     public void toggleMobProtection(Player player) { toggleFlag(player, "mobs"); }
 
-    public boolean isPetProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("pets", true);
-    }
+    public boolean isPetProtectionEnabled(Player player) { return checkFlag(player, "pets"); }
     public void togglePetProtection(Player player) { toggleFlag(player, "pets"); }
 
-    public boolean isEntityProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("entities", true);
-    }
+    public boolean isEntityProtectionEnabled(Player player) { return checkFlag(player, "entities"); }
     public void toggleEntityProtection(Player player) { toggleFlag(player, "entities"); }
 
-    public boolean isFarmProtectionEnabled(Player player) {
-        PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
-        return plot != null && plot.getFlag("farm", true);
-    }
+    public boolean isFarmProtectionEnabled(Player player) { return checkFlag(player, "farm"); }
     public void toggleFarmProtection(Player player) { toggleFlag(player, "farm"); }
 
     /* -----------------------------
      * Helpers
      * ----------------------------- */
+    private boolean checkFlag(Player p, String flag) {
+        PlotStore.Plot plot = plugin.store().getPlotAt(p.getLocation());
+        return plot != null && plot.getFlag(flag, true);
+    }
+
     private boolean canBuild(Player p, PlotStore.Plot plot) {
         if (p.hasPermission("aegisguard.admin")) return true;
         if (p.getUniqueId().equals(plot.getOwner())) return true;
@@ -216,5 +215,23 @@ public class ProtectionManager implements Listener {
                  SMOKER, HOPPER, DROPPER, DISPENSER, SHULKER_BOX -> true;
             default -> false;
         };
+    }
+
+    /* -----------------------------
+     * Visual + Sound Effects
+     * ----------------------------- */
+    private void denyEffect(Player p, Location loc) {
+        p.playSound(loc, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.6f);
+        loc.getWorld().spawnParticle(Particle.SMOKE_NORMAL, loc.add(0.5, 1, 0.5), 8, 0.3, 0.3, 0.3, 0.01);
+    }
+
+    private void successEffect(Player p) {
+        p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
+        p.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, p.getLocation().add(0, 1, 0), 12, 0.5, 0.5, 0.5, 0.1);
+    }
+
+    private void failEffect(Player p) {
+        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_LAND, 1f, 0.8f);
+        p.getWorld().spawnParticle(Particle.SMOKE_NORMAL, p.getLocation().add(0, 1, 0), 12, 0.5, 0.5, 0.5, 0.05);
     }
 }
