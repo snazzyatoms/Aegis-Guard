@@ -30,15 +30,38 @@ effects:
     lightning_visual: true   # Strike lightning effect when a claim is made
     particle: TOTEM          # Particle effect when claiming (TOTEM, FLAME, HEART, etc.)
 
-# New protection feedback effects
+# ======================================
+# Protection Feedback Effects
+# ======================================
 protection_effects:
-  enabled: true
-  deny_sound: BLOCK_NOTE_BLOCK_BASS
-  deny_particle: SMOKE_NORMAL
-  success_sound: ENTITY_EXPERIENCE_ORB_PICKUP
-  success_particle: VILLAGER_HAPPY
-  fail_sound: BLOCK_ANVIL_LAND
-  fail_particle: SMOKE_NORMAL
+  enabled: true               # Master toggle for protection feedback
+  defaults:                   # Fallbacks if a protection type is missing
+    deny_sound: BLOCK_NOTE_BLOCK_BASS
+    deny_particle: SMOKE_NORMAL
+    success_sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    success_particle: VILLAGER_HAPPY
+    fail_sound: BLOCK_ANVIL_LAND
+    fail_particle: SMOKE_NORMAL
+
+  # Specific protections (optional overrides)
+  pvp:
+    deny_sound: ENTITY_ENDERMAN_TELEPORT
+    deny_particle: REDSTONE
+  containers:
+    deny_sound: BLOCK_CHEST_LOCKED
+    deny_particle: CRIT
+  mobs:
+    deny_sound: ENTITY_ZOMBIE_ATTACK_IRON_DOOR
+    deny_particle: FLAME
+  pets:
+    deny_sound: ENTITY_CAT_HISS
+    deny_particle: HEART
+  entities:
+    deny_sound: BLOCK_ANVIL_PLACE
+    deny_particle: CRIT_MAGIC
+  farm:
+    deny_sound: BLOCK_CROP_BREAK
+    deny_particle: VILLAGER_ANGRY
 
 # ======================================
 # Protections
