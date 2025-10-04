@@ -9,6 +9,7 @@ import com.aegisguard.gui.GUIManager;
 import com.aegisguard.protection.ProtectionManager;
 import com.aegisguard.selection.SelectionService;
 import com.aegisguard.util.MessagesUtil;
+import com.aegisguard.world.WorldRulesManager; // NEW import
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -36,6 +37,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  *   • Vault economy integration
  *   • AdminCommand (cleanup banned plots etc.)
  *   • Sound system (per-player & global toggle)
+ *   • WorldRulesManager (per-world customization)
  * ==============================================================
  */
 public class AegisGuard extends JavaPlugin {
@@ -50,6 +52,7 @@ public class AegisGuard extends JavaPlugin {
     private SelectionService selection;
     private VaultHook vault;
     private MessagesUtil messages;
+    private WorldRulesManager worldRules; // NEW
 
     /* -----------------------------
      * Public Getters
@@ -61,6 +64,7 @@ public class AegisGuard extends JavaPlugin {
     public SelectionService selection() { return selection; }
     public VaultHook vault() { return vault; }
     public MessagesUtil msg() { return messages; }
+    public WorldRulesManager worldRules() { return worldRules; } // NEW
 
     /* -----------------------------
      * Lifecycle
@@ -76,9 +80,10 @@ public class AegisGuard extends JavaPlugin {
         this.plotStore   = new PlotStore(this);
         this.selection   = new SelectionService(this);
         this.gui         = new GUIManager(this);
-        this.protection  = new ProtectionManager(this);
         this.vault       = new VaultHook(this);
         this.messages    = new MessagesUtil(this);
+        this.worldRules  = new WorldRulesManager(this); // NEW
+        this.protection  = new ProtectionManager(this);
 
         // Register listeners
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
@@ -91,6 +96,7 @@ public class AegisGuard extends JavaPlugin {
         getCommand("aegisadmin").setExecutor(new AdminCommand(this));
 
         getLogger().info("AegisGuard v" + getDescription().getVersion() + " enabled.");
+        getLogger().info("WorldRulesManager initialized for per-world protections.");
     }
 
     @Override
