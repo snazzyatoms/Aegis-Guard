@@ -1,30 +1,20 @@
 package com.aegisguard.util;
 
 import com.aegisguard.AegisGuard;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
-/**
- * MessagesUtil
- * - Loads messages.yml
- * - Handles color codes & placeholders
- * - Safe fallbacks if keys are missing
- * - Supports both single-line and list messages
- * - Supports admin/console-only notifications
- * - Supports optional broadcast-to-all via config
- */
 public class MessagesUtil {
 
     private final AegisGuard plugin;
     private FileConfiguration messages;
-    private String prefix; // cached prefix
+    private String style; // "old_english" or "modern"
 
     public MessagesUtil(AegisGuard plugin) {
         this.plugin = plugin;
@@ -32,109 +22,66 @@ public class MessagesUtil {
     }
 
     /* -----------------------------
-     * Load messages.yml
+     * Reload configuration
      * ----------------------------- */
     public void reload() {
         File file = new File(plugin.getDataFolder(), "messages.yml");
-        if (!file.exists()) {
-            plugin.saveResource("messages.yml", false);
-        }
+        if (!file.exists()) plugin.saveResource("messages.yml", false);
         this.messages = YamlConfiguration.loadConfiguration(file);
-        this.prefix = color(messages.getString("prefix", "&8[&bAegisGuard&8]&r "));
+        this.style = plugin.getConfig().getString("messages.language_style", "modern").toLowerCase();
     }
 
     /* -----------------------------
-     * Get single-line message
+     * Core Message Fetching
      * ----------------------------- */
     public String get(String key) {
-        String msg = messages.getString(key);
-        if (msg == null) {
-            return color("&cMissing message: " + key);
-        }
+        String val = messages.getString(key);
+        return val != null ? color(val) : "§c[Missing: " + key + "]";
+    }
+
+    public List<String> getList(String key) {
+        List<String> list = messages.getStringList(key);
+        if (list == null || list.isEmpty()) return Collections.singletonList("§c[Missing: " + key + "]");
+        List<String> colored = new ArrayList<>();
+        for (String line : list) colored.add(color(line));
+        return colored;
+    }
+
+    /* -----------------------------
+     * Expansion Request Messages
+     * ----------------------------- */
+    public String expansion(String key, Map<String, String> placeholders) {
+        String section = style.equals("old_english") ? "expansion_messages_old_english." : "expansion_messages_modern.";
+        String msg = messages.getString(section + key, "§c[Missing expansion message: " + key + "]");
+        if (msg == null) return "";
+        for (Map.Entry<String, String> e : placeholders.entrySet())
+            msg = msg.replace("{" + e.getKey() + "}", e.getValue());
         return color(msg);
     }
 
     /* -----------------------------
-     * Get multi-line message (list)
+     * On-the-Fly Style Switching
      * ----------------------------- */
-    public List<String> getList(String key) {
-        List<String> raw = messages.getStringList(key);
-        if (raw == null || raw.isEmpty()) {
-            List<String> fallback = new ArrayList<>();
-            fallback.add(color("&cMissing message list: " + key));
-            return fallback;
+    public void toggleStyle() {
+        if (!plugin.getConfig().getBoolean("messages.allow_runtime_switch", false)) {
+            return;
         }
-        List<String> out = new ArrayList<>();
-        for (String line : raw) {
-            out.add(color(line));
-        }
-        return out;
+        this.style = this.style.equals("old_english") ? "modern" : "old_english";
+        plugin.getConfig().set("messages.language_style", this.style);
+        plugin.saveConfig();
+        plugin.getLogger().info("[AegisGuard] Language style switched to: " + this.style);
     }
 
     /* -----------------------------
-     * Format placeholders into a string
+     * Utility Helpers
      * ----------------------------- */
-    public String format(String key, Object... replacements) {
+    public void send(CommandSender target, String key) {
         String msg = get(key);
-        for (int i = 0; i < replacements.length - 1; i += 2) {
-            msg = msg.replace("{" + replacements[i] + "}", String.valueOf(replacements[i + 1]));
-        }
-        // Add prefix unless it's the prefix itself
-        if (!key.equalsIgnoreCase("prefix")) {
-            msg = prefix + msg;
-        }
-        return msg;
-    }
-
-    /* -----------------------------
-     * Format placeholders into a list
-     * ----------------------------- */
-    public List<String> formatList(String key, Object... replacements) {
-        List<String> lines = getList(key);
-        List<String> formatted = new ArrayList<>();
-        for (String line : lines) {
-            String replaced = line;
-            for (int i = 0; i < replacements.length - 1; i += 2) {
-                replaced = replaced.replace("{" + replacements[i] + "}", String.valueOf(replacements[i + 1]));
-            }
-            formatted.add(replaced);
-        }
-        return formatted;
-    }
-
-    /* -----------------------------
-     * Send to player
-     * ----------------------------- */
-    public void send(Player p, String key, Object... replacements) {
-        p.sendMessage(format(key, replacements));
-    }
-
-    /* -----------------------------
-     * Send to admins + console only
-     * OR broadcast if enabled in config
-     * ----------------------------- */
-    public void sendAdmin(String key, Object... replacements) {
-        String msg = format(key, replacements);
-
-        // Check config for broadcast
-        boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_to_all", false);
-
-        if (broadcast) {
-            Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(msg));
-            Bukkit.getConsoleSender().sendMessage(msg);
-        } else {
-            // Console
-            Bukkit.getConsoleSender().sendMessage(msg);
-            // Online admins only
-            Bukkit.getOnlinePlayers().stream()
-                    .filter(p -> p.hasPermission("aegisguard.admin"))
-                    .forEach(p -> p.sendMessage(msg));
+        if (msg != null && !msg.isEmpty()) {
+            target.sendMessage(color(plugin.getConfig().getString("prefix", "") + msg));
         }
     }
 
-    /* -----------------------------
-     * Utility: Color codes
-     * ----------------------------- */
     private String color(String text) {
         return ChatColor.translateAlternateColorCodes('&', text);
     }
