@@ -1,35 +1,45 @@
 # ======================================
-# AegisGuard v1.0 - Config
+# AegisGuard v1.0 - Configuration File
+# ======================================
+# This file controls all behavior of AegisGuard:
+#   • Claim limits, sizes, and costs
+#   • Economy integration (Vault or item-based)
+#   • Per-world claim/protection customization
+#   • Visual effects and sound settings
+#   • Admin and gameplay balance controls
 # ======================================
 
-# ======================================
-# Economy (Global Defaults)
-# ======================================
-use_vault: true            # true = use Vault currency, false = item cost
-claim_cost: 100.0          # Vault cost per claim (only if use_vault = true)
 
-item_cost:                 # Item payment alternative (only if use_vault = false)
+# ======================================
+# 💰 Economy (Global Defaults)
+# ======================================
+use_vault: true            # true = use Vault economy; false = use item cost below
+claim_cost: 100.0          # Base cost per claim if using Vault
+
+item_cost:                 # Used if use_vault = false
   type: DIAMOND
   amount: 5
 
-refund_on_unclaim: false   # true = give players refunds when unclaiming
-refund_percent: 0          # % refunded (0 = none, 50 = half, 100 = full)
+refund_on_unclaim: false   # true = refund when unclaiming
+refund_percent: 0          # Refund percentage (0 = none, 50 = half, 100 = full)
+
 
 # ======================================
-# Claims & Limits
+# 🏡 Claims & Limits
 # ======================================
 claims:
   # --- Global Defaults ---
-  max_claims_per_player: 1   # Maximum number of claims a player can own (global)
-  min_radius: 1              # Minimum radius for a claim (in blocks)
-  max_radius: 32             # Maximum radius for a claim (in blocks)
-  max_area: 16000            # Maximum total claim area (blocks^2)
-  preview_seconds: 10        # How long (in seconds) a claim preview lasts
+  max_claims_per_player: 1     # Maximum number of claims per player (global)
+  min_radius: 1                # Minimum radius for a claim
+  max_radius: 32               # Maximum radius for a claim
+  max_area: 16000              # Maximum total area per claim (blocks^2)
+  preview_seconds: 10          # How long claim outlines appear when previewed (in seconds)
 
-  # --- Optional Per-World Settings ---
-  # If a world is listed here, its values override global defaults.
+  # --- Per-World Settings (Overrides global defaults) ---
   per_world:
-    world:                   # Example overworld
+
+    # 🌍 Overworld – Peaceful and protected
+    world:
       use_vault: true
       vault_cost: 200.0
       item_cost:
@@ -42,14 +52,15 @@ claims:
       max_radius: 48
       max_area: 25000
 
-      protections:            # Overworld-specific protections
-        pvp_protection: true
-        no_mobs_in_claims: true
-        container_protection: true
-        pets_protection: true
-        entities_protection: true
-        farm_protection: true
+      protections:
+        pvp_protection: true           # Disable PvP in claims
+        no_mobs_in_claims: true        # Prevent hostile mob spawning
+        container_protection: true     # Protect chests/furnaces from outsiders
+        pets_protection: true          # Protect tamed pets
+        entities_protection: true      # Protect armor stands, frames, etc.
+        farm_protection: true          # Prevent farmland trampling
 
+    # 🔥 Nether – Hostile survival environment
     world_nether:
       use_vault: false
       item_cost:
@@ -62,39 +73,42 @@ claims:
       max_radius: 16
       max_area: 8000
 
-      protections:            # Nether-specific protections (hard survival flavor)
-        pvp_protection: false        # PvP always ON in Nether
-        no_mobs_in_claims: false     # Mobs allowed in claims
+      protections:
+        pvp_protection: false          # PvP always ON in Nether
+        no_mobs_in_claims: false       # Hostile mobs allowed
         container_protection: true
-        pets_protection: false       # Pets vulnerable
+        pets_protection: false         # Pets vulnerable
         entities_protection: true
-        farm_protection: false       # Nether crops not protected
+        farm_protection: false         # Nether crops not protected
 
+    # 🌌 The End – Mysterious, unclaimable world
     world_the_end:
-      max_claims_per_player: 0   # 0 = disable claims in this world
-
-      protections:            # End-specific protections (mystical flavor)
+      max_claims_per_player: 0         # 0 = claims disabled in this world
+      protections:
         pvp_protection: true
         no_mobs_in_claims: true
-        container_protection: false   # End containers open to all
+        container_protection: false
         pets_protection: false
         entities_protection: true
-        farm_protection: false        # Farming irrelevant here
+        farm_protection: false
+
 
 # ======================================
-# Effects & Visuals
+# ⚡ Visual Effects on Claim
 # ======================================
 effects:
   on_claim:
-    lightning_visual: true   # Strike lightning effect when a claim is made
-    particle: TOTEM          # Particle effect when claiming (TOTEM, FLAME, HEART, etc.)
+    lightning_visual: true       # Strike lightning for dramatic effect
+    particle: TOTEM              # Particle effect when claiming (TOTEM, FLAME, HEART, etc.)
+
 
 # ======================================
-# Protection Feedback Effects
+# 🔔 Protection Feedback Effects
 # ======================================
 protection_effects:
-  enabled: true               # Master toggle for protection feedback
-  defaults:                   # Fallbacks if a protection type is missing
+  enabled: true                  # Master toggle for visual/sound feedback
+
+  defaults:
     deny_sound: BLOCK_NOTE_BLOCK_BASS
     deny_particle: SMOKE_NORMAL
     success_sound: ENTITY_EXPERIENCE_ORB_PICKUP
@@ -102,51 +116,56 @@ protection_effects:
     fail_sound: BLOCK_ANVIL_LAND
     fail_particle: SMOKE_NORMAL
 
-  # Specific protections (optional overrides)
+  # Protection-specific overrides
   pvp:
     deny_sound: ENTITY_ENDERMAN_TELEPORT
     deny_particle: REDSTONE
+
   containers:
     deny_sound: BLOCK_CHEST_LOCKED
     deny_particle: CRIT
+
   mobs:
     deny_sound: ENTITY_ZOMBIE_ATTACK_IRON_DOOR
     deny_particle: FLAME
+
   pets:
     deny_sound: ENTITY_CAT_HISS
     deny_particle: HEART
+
   entities:
     deny_sound: BLOCK_ANVIL_PLACE
     deny_particle: CRIT_MAGIC
+
   farm:
     deny_sound: BLOCK_CROP_BREAK
     deny_particle: VILLAGER_ANGRY
 
+
 # ======================================
-# Protections (Global Defaults / Fallbacks)
+# 🛡 Protections (Global Fallbacks)
 # ======================================
 protections:
-  no_mobs_in_claims: true      # Prevent hostile mobs from spawning inside claims
-  pvp_protection: true         # Disable PvP inside claims (trusted players exempt)
-  container_protection: true   # Block non-trusted players from opening chests/furnaces
+  no_mobs_in_claims: true
+  pvp_protection: true
+  container_protection: true
   pets_protection: true
   entities_protection: true
   farm_protection: true
 
-# ======================================
-# Sounds & Immersion
-# ======================================
-sounds:
-  global_enabled: true         # Master toggle:
-                               # - true: Sounds are enabled globally by default
-                               # - false: Disables ALL sounds plugin-wide (players cannot re-enable)
-  players: {}                  # Per-player toggles stored automatically
 
 # ======================================
-# Admin Options
+# 🎵 Sounds & Immersion
+# ======================================
+sounds:
+  global_enabled: true          # true = sounds enabled by default
+  players: {}                   # Player preferences auto-filled by plugin
+
+
+# ======================================
+# ⚙ Admin Options
 # ======================================
 admin:
-  auto_remove_banned: false       # Remove all plots of a banned player automatically
+  auto_remove_banned: false       # Auto-remove plots of banned players
   bypass_claim_limit: false       # Allow admins to bypass claim limits
-  broadcast_admin_actions: false  # If true, admin actions are shown to ALL players
-                                  # If false (default), only admins + console see them
+  broadcast_admin_actions: false  # Broadcast admin actions to all players
