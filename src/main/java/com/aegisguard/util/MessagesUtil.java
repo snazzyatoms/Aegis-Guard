@@ -5,16 +5,31 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * ==============================================================
+ * MessagesUtil
+ * --------------------------------------------------------------
+ *  - Handles all message lookups and color formatting
+ *  - Supports per-player tone selection:
+ *      🏰 old_english  (default)
+ *      📜 hybrid_english
+ *      💬 modern_english
+ *  - Reloads dynamically without restart
+ *  - Caches language choices for instant updates
+ * ==============================================================
+ */
 public class MessagesUtil {
 
     private final AegisGuard plugin;
     private FileConfiguration messages;
-    private String style; // "old_english" or "modern"
+    private final Map<UUID, String> playerStyles = new HashMap<>(); // Player UUID → style
+    private String defaultStyle;
 
     public MessagesUtil(AegisGuard plugin) {
         this.plugin = plugin;
@@ -22,67 +37,130 @@ public class MessagesUtil {
     }
 
     /* -----------------------------
-     * Reload configuration
+     * Reload from file
      * ----------------------------- */
     public void reload() {
         File file = new File(plugin.getDataFolder(), "messages.yml");
         if (!file.exists()) plugin.saveResource("messages.yml", false);
         this.messages = YamlConfiguration.loadConfiguration(file);
-        this.style = plugin.getConfig().getString("messages.language_style", "modern").toLowerCase();
+
+        this.defaultStyle = messages.getString("language_styles.default", "old_english");
+
+        plugin.getLogger().info("[AegisGuard] Messages loaded. Default style: " + defaultStyle);
     }
 
     /* -----------------------------
-     * Core Message Fetching
+     * Public Accessors
      * ----------------------------- */
+
+    /**
+     * Retrieves a formatted message for a player
+     */
+    public String get(Player player, String key) {
+        String style = playerStyles.getOrDefault(player.getUniqueId(), defaultStyle);
+        String path = style + "." + key;
+
+        if (!messages.contains(path)) {
+            // fallback to default
+            path = defaultStyle + "." + key;
+        }
+
+        String msg = messages.getString(path, "&c[Missing message: " + key + "]");
+        return format(msg);
+    }
+
+    /**
+     * Retrieves a message with fallback for non-player senders
+     */
     public String get(String key) {
-        String val = messages.getString(key);
-        return val != null ? color(val) : "§c[Missing: " + key + "]";
+        String path = defaultStyle + "." + key;
+        String msg = messages.getString(path, "&c[Missing message: " + key + "]");
+        return format(msg);
     }
 
-    public List<String> getList(String key) {
-        List<String> list = messages.getStringList(key);
-        if (list == null || list.isEmpty()) return Collections.singletonList("§c[Missing: " + key + "]");
-        List<String> colored = new ArrayList<>();
-        for (String line : list) colored.add(color(line));
-        return colored;
+    /**
+     * Sends a prefixed message to sender
+     */
+    public void send(CommandSender sender, String key) {
+        String prefix = messages.getString("prefix", "&8[&bAegisGuard&8]&r ");
+        String msg = (sender instanceof Player p)
+                ? get(p, key)
+                : get(key);
+        sender.sendMessage(format(prefix + msg));
+    }
+
+    /**
+     * Sends a message with placeholders replaced
+     */
+    public void send(CommandSender sender, String key, Map<String, String> placeholders) {
+        String msg = (sender instanceof Player p)
+                ? get(p, key)
+                : get(key);
+
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            msg = msg.replace("{" + entry.getKey() + "}", entry.getValue());
+        }
+
+        String prefix = messages.getString("prefix", "&8[&bAegisGuard&8]&r ");
+        sender.sendMessage(format(prefix + msg));
     }
 
     /* -----------------------------
-     * Expansion Request Messages
+     * Player Language Management
      * ----------------------------- */
-    public String expansion(String key, Map<String, String> placeholders) {
-        String section = style.equals("old_english") ? "expansion_messages_old_english." : "expansion_messages_modern.";
-        String msg = messages.getString(section + key, "§c[Missing expansion message: " + key + "]");
-        if (msg == null) return "";
-        for (Map.Entry<String, String> e : placeholders.entrySet())
-            msg = msg.replace("{" + e.getKey() + "}", e.getValue());
-        return color(msg);
-    }
 
-    /* -----------------------------
-     * On-the-Fly Style Switching
-     * ----------------------------- */
-    public void toggleStyle() {
-        if (!plugin.getConfig().getBoolean("messages.allow_runtime_switch", false)) {
+    public void setPlayerStyle(Player player, String style) {
+        List<String> valid = messages.getStringList("language_styles.available");
+        if (!valid.contains(style)) {
+            player.sendMessage(ChatColor.RED + "⚠ Invalid language style.");
             return;
         }
-        this.style = this.style.equals("old_english") ? "modern" : "old_english";
-        plugin.getConfig().set("messages.language_style", this.style);
-        plugin.saveConfig();
-        plugin.getLogger().info("[AegisGuard] Language style switched to: " + this.style);
+
+        playerStyles.put(player.getUniqueId(), style);
+        savePlayerPreference(player, style);
+
+        player.sendMessage(ChatColor.GOLD + "🕮 Your message style is now set to: " +
+                ChatColor.AQUA + style.replace("_", " "));
     }
 
-    /* -----------------------------
-     * Utility Helpers
-     * ----------------------------- */
-    public void send(CommandSender target, String key) {
-        String msg = get(key);
-        if (msg != null && !msg.isEmpty()) {
-            target.sendMessage(color(plugin.getConfig().getString("prefix", "") + msg));
+    public String getPlayerStyle(Player player) {
+        return playerStyles.getOrDefault(player.getUniqueId(), defaultStyle);
+    }
+
+    public void loadPlayerPreferences() {
+        File file = new File(plugin.getDataFolder(), "playerdata.yml");
+        if (!file.exists()) return;
+
+        FileConfiguration data = YamlConfiguration.loadConfiguration(file);
+        ConfigurationSection section = data.getConfigurationSection("players");
+        if (section == null) return;
+
+        for (String uuidStr : section.getKeys(false)) {
+            UUID uuid = UUID.fromString(uuidStr);
+            String style = section.getString(uuidStr + ".language_style", defaultStyle);
+            playerStyles.put(uuid, style);
+        }
+
+        plugin.getLogger().info("[AegisGuard] Loaded " + playerStyles.size() + " player language preferences.");
+    }
+
+    private void savePlayerPreference(Player player, String style) {
+        File file = new File(plugin.getDataFolder(), "playerdata.yml");
+        FileConfiguration data = YamlConfiguration.loadConfiguration(file);
+
+        data.set("players." + player.getUniqueId() + ".language_style", style);
+
+        try {
+            data.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private String color(String text) {
-        return ChatColor.translateAlternateColorCodes('&', text);
+    /* -----------------------------
+     * Formatting
+     * ----------------------------- */
+    private String format(String msg) {
+        return ChatColor.translateAlternateColorCodes('&', msg == null ? "" : msg);
     }
 }
