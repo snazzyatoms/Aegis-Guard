@@ -19,6 +19,28 @@ language_styles:
     - modern_english
 
 # ======================================
+# GUI Texts Shared Across All Styles
+# ======================================
+
+# Language selector lore shown in Settings GUI
+language_style_lore:
+  - "&7Switch the tone of AegisGuard's speech."
+  - "&8Choose between ancient & modern tongues."
+  - "&7Current options:"
+  - "&f - Old English &8(Thou hast...)"
+  - "&f - Hybrid English &8(Thou hast/You have...)"
+  - "&f - Modern English &8(You have...)"
+  - "&eClick to cycle tone instantly."
+
+# Shared GUI button/lore (unchanging)
+button_back: "&eBack"
+button_exit: "&cExit"
+back_lore:
+  - "&7Return to the Guardian Codex"
+exit_lore:
+  - "&7Close the Codex"
+
+# ======================================
 # OLD ENGLISH STYLE (Default)
 # ======================================
 old_english:
@@ -50,20 +72,26 @@ old_english:
   not_trusted: "&c❌ {PLAYER} is not among thy sworn allies."
 
   menu_title: "&b⚔ The Guardian Codex ⚔"
+  settings_menu_title: "&9⚙ Thine Settings"
   button_claim_land: "&a🛡 Lay Claim to Land"
   button_trusted_players: "&eTrusted Companions"
   button_settings: "&9⚙ Configure Thine Protections"
-  button_exit: "&cDepart from Codex"
-  sound_enabled: "&a✔ The sounds of Aegis sing once more."
-  sound_disabled: "&c❌ The echoes of Aegis fall silent."
+  button_info: "&6📜 Codex of Knowledge"
+  button_sounds_on: "&a🔊 Sounds: Awake"
+  button_sounds_off: "&c🔇 Sounds: Silent"
+  button_sounds_disabled_global: "&7🔇 Sounds: Bound by Divine Silence"
 
-  claim_effect: "&b⚡ The heavens mark thy dominion — a claim is born."
+  sound_enabled: "&a✔ The echoes of Aegis sing once more."
+  sound_disabled: "&c❌ The voice of Aegis falleth silent."
 
-  expansion_submitted: "&a✔ Thy request for expansion hath been scribed into the archives."
-  expansion_denied: "&c✖ Thy plea hath been refused by {PLAYER}."
-  expansion_approved: "&a⚔ Thy dominion now extendeth by the decree of {PLAYER}."
-  expansion_invalid: "&c⚠ That request is no longer among the living scrolls."
-  expansion_exists: "&e⚠ Thou hast a petition yet unanswered; wait, lest thou anger the scribes."
+  # Expansion Request System
+  expansion_submitted: "&a✔ Thy plea for expansion hath been recorded in the archives."
+  expansion_denied: "&c✖ Thy supplication hath been rejected by {PLAYER}."
+  expansion_approved: "&a⚔ Thy dominion hath been extended by decree of {PLAYER}."
+  expansion_invalid: "&c⚠ This scroll of request is now void and withered."
+  expansion_exists: "&e⚠ Thou hast a pending petition—await thy fate, lest the scribes frown."
+  expansion_broadcast_approved: "&a📜 The realm knoweth: {PLAYER} hath blessed an expansion."
+  expansion_broadcast_denied: "&c📜 The realm heareth: {PLAYER} hath denied a mortal’s plea."
 
   help_header: "&b⚔ &nThe Guardian’s Scroll of Instruction&r"
   help_lines:
@@ -91,10 +119,12 @@ hybrid_english:
   cannot_place: "&c❌ This land refuseth thy hand."
 
   expansion_submitted: "&a✔ Thy expansion request hath been received."
-  expansion_approved: "&a⚔ Thy dominion hath grown by approval of {PLAYER}."
-  expansion_denied: "&c✖ Thy expansion request was denied by {PLAYER}."
-  expansion_invalid: "&c⚠ The request is lost to the void."
+  expansion_approved: "&a⚔ Thy dominion hath grown by decree of {PLAYER}."
+  expansion_denied: "&c✖ Thy request was denied by {PLAYER}."
+  expansion_invalid: "&c⚠ The scroll of request is lost to the void."
   expansion_exists: "&e⚠ Thou already hast a pending request."
+  expansion_broadcast_approved: "&a📜 {PLAYER} hath approved an expansion."
+  expansion_broadcast_denied: "&c📜 {PLAYER} hath refused an expansion."
 
   help_header: "&b⚔ &nGuardian’s Guide&r"
   help_lines:
@@ -111,7 +141,7 @@ modern_english:
   usage_main: "&eUsage: /aegis <wand|menu|claim|unclaim|help>"
 
   wand_given: "&a✔ You’ve received the Aegis Scepter."
-  plot_created: "&a✔ Your claim has been created and is protected."
+  plot_created: "&a✔ Your claim has been created and protected."
   plot_unclaimed: "&e⚠ Your land has been unclaimed."
 
   cannot_break: "&c❌ You can’t break blocks here."
@@ -124,6 +154,8 @@ modern_english:
   expansion_denied: "&c✖ Your expansion request was denied by {PLAYER}."
   expansion_invalid: "&c⚠ That expansion request no longer exists."
   expansion_exists: "&e⚠ You already have a pending expansion request."
+  expansion_broadcast_approved: "&a📜 {PLAYER} approved an expansion request!"
+  expansion_broadcast_denied: "&c📜 {PLAYER} denied an expansion request."
 
   help_header: "&b⚔ Guardian Codex Help"
   help_lines:
