@@ -8,8 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * ==============================================================
  * WorldRulesManager
- * ---------------------------
+ * --------------------------------------------------------------
  * Handles per-world configuration for AegisGuard.
  * Allows each world to define unique claim and protection behavior:
  *   - PvP toggle
@@ -23,19 +24,23 @@ import java.util.Map;
  *   per_world:
  *     world:
  *       allow_claims: true
- *       pvp: false
- *       mobs: false
- *       containers: true
- *       pets: true
- *       farms: true
+ *       protections:
+ *         pvp: false
+ *         mobs: false
+ *         containers: true
+ *         pets: true
+ *         farms: true
  *     world_nether:
  *       allow_claims: false
- *       pvp: true
- *       mobs: true
+ *       protections:
+ *         pvp: true
+ *         mobs: true
  *     world_the_end:
  *       allow_claims: false
- *       pvp: false
- *       mobs: true
+ *       protections:
+ *         pvp: false
+ *         mobs: true
+ * ==============================================================
  */
 public class WorldRulesManager {
 
@@ -50,24 +55,47 @@ public class WorldRulesManager {
     /* -----------------------------
      * Reload configuration
      * ----------------------------- */
+    public void reload() {
+        plugin.reloadConfig();
+        load();
+    }
+
+    /* -----------------------------
+     * Load world-specific rules
+     * ----------------------------- */
     public void load() {
         rules.clear();
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("claims.per_world");
-        if (section == null) return;
+        if (section == null) {
+            plugin.getLogger().warning("[AegisGuard] No per-world configuration found. Using defaults.");
+            return;
+        }
 
         for (String worldName : section.getKeys(false)) {
-            ConfigurationSection w = section.getConfigurationSection(worldName);
-            if (w == null) continue;
+            ConfigurationSection worldSec = section.getConfigurationSection(worldName);
+            if (worldSec == null) continue;
+
+            boolean allowClaims = worldSec.getBoolean("allow_claims", true);
+
+            // Nested structure support (protections: ...)
+            ConfigurationSection prot = worldSec.getConfigurationSection("protections");
+            if (prot == null) prot = worldSec;
 
             WorldRuleSet set = new WorldRuleSet(
-                    w.getBoolean("allow_claims", true),
-                    w.getBoolean("pvp", false),
-                    w.getBoolean("mobs", false),
-                    w.getBoolean("containers", true),
-                    w.getBoolean("pets", true),
-                    w.getBoolean("farms", true)
+                    allowClaims,
+                    prot.getBoolean("pvp", false),
+                    prot.getBoolean("mobs", false),
+                    prot.getBoolean("containers", true),
+                    prot.getBoolean("pets", true),
+                    prot.getBoolean("farms", true)
             );
+
             rules.put(worldName, set);
+
+            plugin.getLogger().info(String.format(
+                    "[AegisGuard] Loaded world rules for '%s': claims=%s, pvp=%s, mobs=%s, containers=%s, pets=%s, farms=%s",
+                    worldName, allowClaims, set.pvp, set.mobs, set.containers, set.pets, set.farms
+            ));
         }
 
         plugin.getLogger().info("[AegisGuard] Loaded " + rules.size() + " per-world rule sets.");
@@ -102,6 +130,21 @@ public class WorldRulesManager {
 
     public boolean allowFarms(World world) {
         return getRules(world).farms;
+    }
+
+    /**
+     * Generic protection lookup for dynamic checks (used by ProtectionManager)
+     */
+    public boolean isProtectionEnabled(World world, String key) {
+        WorldRuleSet r = getRules(world);
+        return switch (key.toLowerCase()) {
+            case "pvp", "pvp_protection" -> r.pvp;
+            case "mobs", "mobs_protection" -> r.mobs;
+            case "containers", "container_protection" -> r.containers;
+            case "pets", "pets_protection" -> r.pets;
+            case "farms", "farm_protection" -> r.farms;
+            default -> true;
+        };
     }
 
     /* -----------------------------
