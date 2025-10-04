@@ -1,101 +1,92 @@
-# Contributing to AegisGuard 🛡️
+🛡️ AegisGuard — By Aegis Divine
 
-Thanks for your interest in contributing! 🎉  
-AegisGuard is a community-driven land protection plugin for Minecraft servers, and your help makes it stronger.
+Hearken, traveler of realms.
+AegisGuard is a light and noble plugin, forged in holy code to shield thy lands from peril and strife.
+With the Sacred Scepter of Aegis, thou mayest claim, shape, and safeguard thy plots with divine precision.
+
+It bringeth forth a clean and blessed interface, a circle of trusted allies, and protection ‘gainst beasts and blade alike.
+With Vault’s tribute, and visions to mark thy dominion, AegisGuard standeth eternal —
+simple, steadfast, and ever kept in holy update.
+
+⚔️ Contributing to AegisGuard
+
+We offer thee thanks, noble developer, for thine interest in strengthening this divine shield.
+AegisGuard is a craft of the community, and thy contribution maketh its walls ever stronger.
 
 ---
 
-## 🚀 Getting Started
+🚀 To Begin Thy Work
 
-To contribute to AegisGuard, follow these steps:
+To lend thy hand to the code of Aegis, followeth these sacred steps:
 
-1. **Fork** the repository on GitHub  
-2. **Clone** your fork locally:
-   ```bash
+1. Forketh the repository upon the scrolls of GitHub.
+
+2. Cloneth thy fork to thine local chamber:
    git clone https://github.com/YOUR_USERNAME/AegisGuard.git
 
 
-3. Create a new branch for your feature or fix:
+3. Forge a new branch for thy feature or remedy:
 git checkout -b feature/my-feature
 
-4. Make your changes
+4. Maketh thy changes with care and discipline.
 
-Follow the coding guidelines below
+Followeth the coding decrees below.
 
-Test changes on a Paper/Spigot server before committing
+Test thine work upon a Paper or Spigot server before committal.
 
-5. Commit with a clear message:
+5. Inscribeth thy deed with clarity:
 git commit -m "Add feature: trusted player GUI improvements"
 
-6. Push to your fork:
+6. Push thy branch to thy own repository:
 git push origin feature/my-feature
 
-7. Open a Pull Request on GitHub 🎉
+7. Summon a Pull Request upon the altar of GitHub. 🎉
 
 ---
 
-🧑‍💻 Coding Guidelines
+🧙‍♂️ The Decrees of Code
 
-Keep code clean, minimal, and organized (≤10 main Java files is the target).
+Let thy code be clean, minimal, and ordered — no more than ten main tomes (Java files) in count.
+Mark each section with fair headers, that all who come after thee may read and understand.
+Let methods be short yet purposeful.
 
-Use clear section headers so features are easy to find and modify.
+Test all things within the holy server of Paper ere thou submit.
+Invite not needless dependencies, for AegisGuard must remain swift and light.
+Hold true to the formatting and order of the ancient scrolls already written.
+---
+🔨 Where Thy Aid Is Needed
 
-Keep methods short and descriptive.
+The realm welcomes contributions of many kinds, including:
 
-Always test changes on a Paper/Spigot server before submitting.
-
-Avoid unnecessary dependencies — AegisGuard should remain lightweight.
-
-Match the existing style and formatting in the project.
-
+🐛 The slaying of foul bugs — false protections, broken buttons, and crashes.
+⚙️ New flags or options to grant players finer command.
+🔗 Bonds of compatibility — Vault, WorldGuard, Towny, or BungeeCord.
+⚡ Holy optimizations and performance blessings.
+📖 Scrolls of knowledge — documentation, examples, and commentaries.
 ---
 
-🛠️ What You Can Help With
+✅ The Checklist of Worthiness
 
-We welcome contributions in many areas, including:
+Before presenting thy Pull Request, ensure these truths be met:
 
-🐛 Bug fixes (false protections, broken buttons, crashes, etc.)
-
-⚙️ New flags or configurable options
-
-🔗 Compatibility (Vault, WorldGuard, Towny, BungeeCord)
-
-⚡ Performance optimizations and cleanups
-
-📖 Documentation, code comments, and usage examples
-
+✅ Thy code compilest and runneth upon the latest Paper API (1.20+).
+✅ No trace of idle debug text nor forgotten imports remain.
+✅ Configuration and messages are neat and blessedly ordered.
+✅ All features hath been tested upon a living, breathing server.
+✅ Thy Pull Request beareth a clear description of what was wrought.
 ---
 
-✅ Pull Request Checklist
+💬 Of Communication and Conduct
 
-Before submitting a PR, please ensure:
-
-✅ Code compiles and runs on the latest Paper API (1.20+).
-
-✅ No leftover debug code (System.out.println) or unused imports.
-
-✅ Config & messages are neat and organized.
-
-✅ Features are tested in-game on a real server.
-
-✅ PR includes a clear description of what was added/changed.
-
+Use the Issues board for thy scrolls of bug, request, or question.
+Speak always with respect, for AegisGuard serveth the whole of the community.
+Shouldst thou plan great changes, open first a discussion to seek wise counsel.
 ---
+📜 Of License and Oath
 
-💬 Communication
-
-Use Issues for bug reports, feature requests, or questions.
-
-Be respectful, constructive, and collaborative — AegisGuard is for the community.
-
-If planning major changes, open an Issue first to discuss ideas.
-
----
-
-📜 License
-
-By contributing, you agree that your code will be licensed under the MIT License.
-This ensures AegisGuard remains open-source, community-friendly, and available for everyone.
+By contributing to these sacred scripts, thou grantest that thy code be governed by the MIT License —
+thus ensuring AegisGuard remaineth open, free, and eternal in the hands of all who build upon it.
 
 
 ---
+🕊️ “Shield thy lands from friend or foe — by Aegis Divine.”
