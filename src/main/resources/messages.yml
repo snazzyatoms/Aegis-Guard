@@ -1,251 +1,134 @@
 # ======================================
 # AegisGuard v1.0 - Messages
 # ======================================
-# Placeholders Guide:
-#   {PLAYER}   = Player name
-#   {X}, {Z}   = Coordinates of a block
-#   {AMOUNT}   = Amount of currency/items
-#   {ITEM}     = Item type (DIAMOND, EMERALD, etc.)
-#   {PERCENT}  = Refund percentage
-#   {WORLD}    = World name (future use)
+# Multilingual Style System:
+#   Players may choose their preferred "tone of English" in Settings:
+#     - old_english (Default)
+#     - hybrid_english
+#     - modern_english
+#   Choice is per-player, updated instantly.
 # ======================================
 
 prefix: "&8[&bAegisGuard&8]&r "
 
-# General
-no_perm: "&cYou do not have permission."
-players_only: "&cOnly players can use this command."
-usage_main: "&eUsage: /aegis <wand|menu|claim|unclaim|help>"
-
-# Wand & Selection
-wand_given: "&aAegis Scepter granted."
-corner1_set: "&a⚡ First corner set at &e{X}, {Z}"
-corner2_set: "&b⚡ Second corner set at &e{X}, {Z}"
-must_select: "&c❌ Select two corners with your Aegis Scepter first."
-already_has_plot: "&c❌ You already own a plot. Unclaim it first."
-plot_created: "&a✔ Plot created successfully!"
-plot_unclaimed: "&e⚠ Your plot has been unclaimed."
-
-# Costs & Refunds
-need_vault: "&c❌ You need at least &e${AMOUNT}&c to claim land."
-need_items: "&c❌ You need &e{AMOUNT} {ITEM}(s)&c to claim land."
-cost_deducted: "&e💰 Cost: &6${AMOUNT}&e has been deducted."
-items_deducted: "&e💎 {AMOUNT} {ITEM}(s) consumed for claim."
-vault_refund: "&e💰 Refunded &6${AMOUNT}&e ({PERCENT}%) for unclaiming."
-item_refund: "&e💎 Refunded &6{AMOUNT} {ITEM}(s)&e ({PERCENT}%) for unclaiming."
-
-# Protections
-cannot_break: "&c❌ You cannot break blocks here!"
-cannot_place: "&c❌ You cannot place blocks here!"
-cannot_interact: "&c❌ You cannot interact here!"
-cannot_attack: "&c❌ You cannot attack players here!"
-
-# Trusted Players
-trusted_added: "&a✔ {PLAYER} is now trusted in your plot."
-trusted_added_target: "&a✔ You have been trusted by {PLAYER}!"
-trusted_removed: "&c❌ {PLAYER} is no longer trusted."
-trusted_self: "&c❌ You cannot trust yourself."
-trusted_already: "&c❌ {PLAYER} is already trusted."
-not_trusted: "&c❌ {PLAYER} is not trusted in your plot."
-
-# GUI Titles
-menu_title: "&b⚔ Guardian Codex ⚔"
-trusted_menu_title: "&eTrusted Players"
-add_trusted_title: "&aAdd Trusted Player"
-remove_trusted_title: "&cRemove Trusted Player"
-settings_menu_title: "&9⚙ Settings"
-admin_menu_title: "&c⚙ Admin Controls"   # NEW
-
-# GUI Buttons
-button_claim_land: "&aClaim Land"
-button_trusted_players: "&eTrusted Players"
-button_settings: "&9Settings"
-button_info: "&6📖 Info & Guide"
-button_add_trusted: "&aAdd Trusted"
-button_remove_trusted: "&cRemove Trusted"
-button_roles: "&d🎭 Roles (Coming Soon)"
-button_back: "&eBack"
-button_exit: "&cExit"
-
-# Admin Menu Button
-button_admin_menu: "&c[Admin] Open Admin Menu"   # NEW
-
-# Sound Buttons
-button_sounds_on: "&a🔊 Sounds: ON"
-button_sounds_off: "&c🔇 Sounds: OFF"
-button_sounds_disabled_global: "&7🔇 Sounds Disabled (Global)"
-
-# Protection Toggles - Buttons
-button_pvp_on: "&a⚔ PvP Protection: ON"
-button_pvp_off: "&c⚔ PvP Protection: OFF"
-button_containers_on: "&a📦 Container Protection: ON"
-button_containers_off: "&c📦 Container Protection: OFF"
-button_mobs_on: "&a🧟 Mob Protection: ON"
-button_mobs_off: "&c🧟 Mob Protection: OFF"
-button_pets_on: "&a🐾 Pet Protection: ON"
-button_pets_off: "&c🐾 Pet Protection: OFF"
-button_entity_on: "&a🛡 Entity Protection: ON"
-button_entity_off: "&c🛡 Entity Protection: OFF"
-button_farm_on: "&a🌾 Farm Protection: ON"
-button_farm_off: "&c🌾 Farm Protection: OFF"
-
-# Admin Buttons
-button_admin_auto_remove: "&c[Admin] Auto-Remove Banned Players"
-button_admin_bypass_limit: "&c[Admin] Bypass Claim Limit"
-button_admin_broadcast: "&c[Admin] Broadcast Admin Actions"
-
-# GUI Lores
-claim_land_lore:
-  - "&7Select and confirm a protected area."
-  - "&8⚡ Use your Aegis Scepter to mark land."
-
-trusted_players_lore:
-  - "&7Manage who can build in your claim."
-  - "&8✔ Add or remove trusted players."
-
-settings_lore:
-  - "&7Toggle protections & preferences."
-  - "&8(PvP, containers, mob spawning, pets, etc.)"
-  - "&8Includes personal sound options"
-  - "&cAdmins see extra options here"
-
-info_lore:
-  - "&7This menu is your all-in-one land protection hub."
-  - "&7Claim land, manage trusted players,"
-  - "&7and configure protections."
-
-exit_lore:
-  - "&7Close the Guardian Codex"
-
-# Roles Placeholder Lore
-roles_lore:
-  - "&7Assign trusted players different roles"
-  - "&7to restrict or allow specific actions"
-  - "&8(e.g. Builder, Visitor, Redstone, etc.)"
-  - "&c⚠ Not yet available"
-  - "&e📌 This feature will be added in a future update"
-
-# Admin Menu Lore
-admin_menu_lore:   # NEW
-  - "&7Exclusive admin controls for managing AegisGuard"
-  - "&7Toggle bans, bypasses, broadcasts, etc."
-
-# Admin Lore
-admin_auto_remove_lore:
-  - "&7Toggle automatic removal of plots"
-  - "&7when a player is banned."
-  - "&cRecommended: Keep OFF unless needed."
-
-admin_bypass_limit_lore:
-  - "&7Toggle whether admins bypass claim limits."
-  - "&8Useful for testing/debugging."
-  - "&cDefault: OFF for balance."
-
-admin_broadcast_lore:
-  - "&7Toggle whether admin actions"
-  - "&7are broadcast to all players."
-  - "&cDefault: OFF (admin-only visibility)."
-
-# Trusted Players Lore
-trusted_menu_lore:
-  - "&7Trusted players can build and interact"
-  - "&7but cannot unclaim or transfer land."
-  - "&eAdd/remove trusted members below!"
-
-add_trusted_lore:
-  - "&7Pick a player from the online list"
-  - "&7Click their head to trust them"
-  - "&eOffline players can be added via chat"
-
-remove_trusted_lore:
-  - "&7Click a head to remove a trusted player"
-  - "&eIf the player is offline, use chat commands."
-
-info_trusted_lore:
-  - "&7Trusted players can:"
-  - "&a✔ Build & interact"
-  - "&c✖ Not unclaim"
-  - "&c✖ Not transfer ownership"
-
-# Sounds
-sound_enabled: "&a✔ Sounds enabled for your menus."
-sound_disabled: "&c❌ Sounds disabled for your menus."
-
-sounds_toggle_lore:
-  - "&7Toggle your personal sound effects"
-  - "&7This only affects you"
-  - "&eClick to switch"
-
-sounds_toggle_global_disabled_lore:
-  - "&7Your personal toggle is unavailable"
-  - "&c⚠ Disabled globally by server owners"
-  - "&7Ask an admin if this should be changed"
-
-# Protection Toggles - Lore
-pvp_toggle_lore:
-  - "&7If &aON&7: PvP is blocked inside your claim"
-  - "&7Trusted players are exempt"
-  - "&cIf OFF: PvP is allowed"
-
-container_toggle_lore:
-  - "&7If &aON&7: Chests, furnaces, anvils, etc."
-  - "&7are protected from outsiders"
-  - "&cIf OFF: Anyone can open containers"
-
-mob_toggle_lore:
-  - "&7If &aON&7: Hostile mobs cannot spawn"
-  - "&7inside your claim (safer plots)"
-  - "&cIf OFF: Mobs can spawn freely"
-
-pet_toggle_lore:
-  - "&7If &aON&7: Pets (wolves, cats, horses)"
-  - "&7are protected from other players"
-  - "&cIf OFF: Pets can be harmed"
-
-entity_toggle_lore:
-  - "&7If &aON&7: Item frames, armor stands,"
-  - "&7paintings, etc. are protected"
-  - "&cIf OFF: They can be broken by others"
-
-farm_toggle_lore:
-  - "&7If &aON&7: Farmland cannot be trampled"
-  - "&7by players, mobs, or NPCs"
-  - "&cIf OFF: Farmland can be destroyed"
-
-back_lore:
-  - "&7Return to the Guardian Codex"
-
-# Help
-help_header: "&b⚔ &nGuardian Codex Help&r"
-help_lines:
-  - "&7--------------------------------------"
-  - "&e/aegis wand &7- Receive the &bAegis Scepter"
-  - "&e/aegis menu &7- Open the Guardian Codex menu"
-  - "&e/aegis claim &7- Claim land using your selection"
-  - "&e/aegis unclaim &7- Unclaim your current land"
-  - "&e/aegis help &7- Show this help page"
-  - "&8⚙ &7Personal sound & protection toggles are in Settings"
-  - "&7--------------------------------------"
-
-# Misc
-info_message: "&6📖 The Guardian Codex explains everything about land protection."
-
-# Effects
-claim_effect: "&b⚡ Zeus blesses your land! A claim has been created."
+language_styles:
+  default: "old_english"
+  available:
+    - old_english
+    - hybrid_english
+    - modern_english
 
 # ======================================
-# Admin Messages
+# OLD ENGLISH STYLE (Default)
 # ======================================
-admin_bypass_limit: "&e⚠ [Admin] You bypassed the claim limit."
-admin_removed_banned: "&c✔ [Admin] Removed all plots owned by banned player {PLAYER}."
-admin_removed_banned_broadcast: "&c⚠ All plots owned by banned player {PLAYER} have been removed."
-admin_action_logged: "&7[Log] {PLAYER} performed an admin action."
+old_english:
+  no_perm: "&cThou hast not the authority for such an act."
+  players_only: "&cOnly mortals in flesh may wield this command."
+  usage_main: "&eSpeak thus: /aegis <wand|menu|claim|unclaim|help>"
 
-admin_auto_remove_enabled: "&a✔ Auto-remove for banned players is now ENABLED."
-admin_auto_remove_disabled: "&c❌ Auto-remove for banned players is now DISABLED."
+  wand_given: "&a⚡ Behold! The Aegis Scepter is bestowed upon thee."
+  corner1_set: "&a⚡ Thy first boundary is marked at &e{X}, {Z}."
+  corner2_set: "&b⚡ Thy second boundary is set at &e{X}, {Z}."
+  must_select: "&c❌ Thou must select two sacred points with thine Scepter."
+  already_has_plot: "&c❌ Thou already possesseth land. Relinquish it first."
+  plot_created: "&a✔ Verily, thy land is now protected under Aegis Guard."
+  plot_unclaimed: "&e⚠ Thy claim hath been released unto the wilds."
 
-admin_bypass_enabled: "&a✔ Admins now bypass claim limits."
-admin_bypass_disabled: "&c❌ Admins no longer bypass claim limits."
+  cannot_break: "&c❌ Nay! These stones are guarded by divine decree."
+  cannot_place: "&c❌ Thou mayest not place objects upon protected ground."
+  cannot_interact: "&c❌ The relics here are not for thy hand to touch."
+  cannot_attack: "&c❌ Violence is forbidden under Aegis’s gaze."
 
-admin_broadcast_enabled: "&a✔ Admin actions are now broadcast to ALL players."
-admin_broadcast_disabled: "&c❌ Admin actions are now visible to admins & console only."
+  need_vault: "&c❌ Thy coffers contain less than &e${AMOUNT}&c gold."
+  cost_deducted: "&e💰 Tribute of &6${AMOUNT}&e hath been rendered."
+  vault_refund: "&e💰 Recompense of &6${AMOUNT}&e ({PERCENT}%) hath been returned to thee."
+
+  trusted_added: "&a✔ {PLAYER} hath been named thy trusted companion."
+  trusted_removed: "&c❌ {PLAYER} hath been struck from thy circle of trust."
+  trusted_self: "&c❌ Thou canst not grant trust unto thyself."
+  trusted_already: "&e⚠ {PLAYER} is already sworn to thee."
+  not_trusted: "&c❌ {PLAYER} is not among thy sworn allies."
+
+  menu_title: "&b⚔ The Guardian Codex ⚔"
+  button_claim_land: "&a🛡 Lay Claim to Land"
+  button_trusted_players: "&eTrusted Companions"
+  button_settings: "&9⚙ Configure Thine Protections"
+  button_exit: "&cDepart from Codex"
+  sound_enabled: "&a✔ The sounds of Aegis sing once more."
+  sound_disabled: "&c❌ The echoes of Aegis fall silent."
+
+  claim_effect: "&b⚡ The heavens mark thy dominion — a claim is born."
+
+  expansion_submitted: "&a✔ Thy request for expansion hath been scribed into the archives."
+  expansion_denied: "&c✖ Thy plea hath been refused by {PLAYER}."
+  expansion_approved: "&a⚔ Thy dominion now extendeth by the decree of {PLAYER}."
+  expansion_invalid: "&c⚠ That request is no longer among the living scrolls."
+  expansion_exists: "&e⚠ Thou hast a petition yet unanswered; wait, lest thou anger the scribes."
+
+  help_header: "&b⚔ &nThe Guardian’s Scroll of Instruction&r"
+  help_lines:
+    - "&7--------------------------------------"
+    - "&e/aegis wand &7- Receive thine &bAegis Scepter"
+    - "&e/aegis menu &7- Summon the Guardian Codex"
+    - "&e/aegis claim &7- Bind land to thy will"
+    - "&e/aegis unclaim &7- Release thine claim"
+    - "&e/aegis help &7- Study this sacred guide"
+    - "&7--------------------------------------"
+
+# ======================================
+# HYBRID ENGLISH STYLE
+# ======================================
+hybrid_english:
+  no_perm: "&cThou lacketh permission for this command."
+  players_only: "&cOnly living adventurers may use this."
+  usage_main: "&eCommand thus: /aegis <wand|menu|claim|unclaim|help>"
+
+  wand_given: "&a⚡ The Aegis Scepter hath been granted."
+  plot_created: "&a✔ Thy claim is secured by the Aegis."
+  plot_unclaimed: "&e⚠ Thy claim is now unbound."
+
+  cannot_break: "&c❌ Thou may not tamper with protected ground."
+  cannot_place: "&c❌ This land refuseth thy hand."
+
+  expansion_submitted: "&a✔ Thy expansion request hath been received."
+  expansion_approved: "&a⚔ Thy dominion hath grown by approval of {PLAYER}."
+  expansion_denied: "&c✖ Thy expansion request was denied by {PLAYER}."
+  expansion_invalid: "&c⚠ The request is lost to the void."
+  expansion_exists: "&e⚠ Thou already hast a pending request."
+
+  help_header: "&b⚔ &nGuardian’s Guide&r"
+  help_lines:
+    - "&e/aegis wand &7- Receive the Scepter"
+    - "&e/aegis menu &7- Open the Guardian Codex"
+    - "&e/aegis claim &7- Claim thy chosen land"
+
+# ======================================
+# MODERN ENGLISH STYLE
+# ======================================
+modern_english:
+  no_perm: "&cYou don’t have permission to do that."
+  players_only: "&cOnly players can use this command."
+  usage_main: "&eUsage: /aegis <wand|menu|claim|unclaim|help>"
+
+  wand_given: "&a✔ You’ve received the Aegis Scepter."
+  plot_created: "&a✔ Your claim has been created and is protected."
+  plot_unclaimed: "&e⚠ Your land has been unclaimed."
+
+  cannot_break: "&c❌ You can’t break blocks here."
+  cannot_place: "&c❌ You can’t build here."
+  cannot_interact: "&c❌ You can’t interact here."
+  cannot_attack: "&c❌ PvP is disabled in this claim."
+
+  expansion_submitted: "&a✔ Your expansion request has been submitted!"
+  expansion_approved: "&a✔ Your expansion request was approved by {PLAYER}!"
+  expansion_denied: "&c✖ Your expansion request was denied by {PLAYER}."
+  expansion_invalid: "&c⚠ That expansion request no longer exists."
+  expansion_exists: "&e⚠ You already have a pending expansion request."
+
+  help_header: "&b⚔ Guardian Codex Help"
+  help_lines:
+    - "&e/aegis wand &7- Get your Aegis Scepter"
+    - "&e/aegis menu &7- Open the main menu"
+    - "&e/aegis claim &7- Claim land"
+    - "&e/aegis unclaim &7- Unclaim your land"
+    - "&e/aegis help &7- Show help"
