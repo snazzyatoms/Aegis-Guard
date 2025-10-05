@@ -2,7 +2,6 @@ package com.aegisguard.gui;
 
 import com.aegisguard.AegisGuard;
 import com.aegisguard.data.PlotStore;
-import com.aegisguard.expansions.ExpansionRequest;
 import com.aegisguard.expansions.ExpansionRequestManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -13,31 +12,31 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Map;
 
 /**
  * ExpansionRequestGUI
  * ------------------------------------------------------------
- * Interactive menu for creating, confirming, or denying
- * expansion requests.
+ * Player-facing interface for submitting expansion requests.
+ * Fully supports tone system (old / hybrid / modern English).
  *
- * Stages:
- *  - Owner requests new size
- *  - GUI previews cost & new radius
- *  - Owner clicks "Confirm" or "Cancel"
- *
- * Integrations:
- *  - Vault / Item economy via ExpansionRequestManager
- *  - WorldRulesManager (auto-disabled where not allowed)
+ * Flow:
+ *  - Displays current & new radius + cost
+ *  - Confirm to submit, Cancel to withdraw
+ *  - Instant tone update — no reload needed
  */
 public class ExpansionRequestGUI {
+
+    private static final DecimalFormat MONEY = new DecimalFormat("#,##0.##");
 
     private final AegisGuard plugin;
     private final ExpansionRequestManager manager;
 
     public ExpansionRequestGUI(AegisGuard plugin) {
         this.plugin = plugin;
-        this.manager = plugin.expansion();
+        this.manager = plugin.getExpansionRequestManager();
     }
 
     /* -----------------------------
@@ -49,41 +48,48 @@ public class ExpansionRequestGUI {
             return;
         }
 
-        // Create inventory
-        Inventory inv = Bukkit.createInventory(null, 27, "📏 Expansion Request");
+        String title = plugin.msg().has("expansion_request_title")
+                ? plugin.msg().get(player, "expansion_request_title")
+                : "📏 Expansion Request";
 
-        // Base info
+        Inventory inv = Bukkit.createInventory(null, 27, title);
+
         int currentRadius = plot.getRadius();
-        int nextRadius = Math.min(currentRadius + 8, plugin.getConfig().getInt("claims.max_radius", 64));
-        double cost = manager.createTempCost(player.getWorld().getName(), currentRadius, nextRadius);
+        int nextRadius = Math.min(currentRadius + 8,
+                plugin.getConfig().getInt("claims.max_radius", 64));
 
-        // Info item
+        double cost = manager.calculateTempCost(
+                player.getWorld().getName(), currentRadius, nextRadius);
+
+        String currency = plugin.getConfig().getBoolean("use_vault", true)
+                ? "$" + MONEY.format(cost)
+                : MONEY.format(cost) + " items";
+
+        // Info Item
         inv.setItem(11, createItem(Material.PAPER,
-                "§bPlot Expansion Details",
+                plugin.msg().color("&b" + plugin.msg().get(player, "expansion_info_title")),
                 List.of(
-                        "§7World: §f" + player.getWorld().getName(),
-                        "§7Current Radius: §e" + currentRadius,
-                        "§7New Radius: §a" + nextRadius,
-                        "§7Cost: §6" + (plugin.getConfig().getBoolean("use_vault", true)
-                                ? "$" + cost
-                                : cost + " items"),
-                        "§8Configure scaling in config.yml"
+                        plugin.msg().color("&7World: &f" + player.getWorld().getName()),
+                        plugin.msg().color("&7Current Radius: &e" + currentRadius),
+                        plugin.msg().color("&7Requested Radius: &a" + nextRadius),
+                        plugin.msg().color("&7Cost: &6" + currency),
+                        plugin.msg().color("&8" + plugin.msg().get(player, "expansion_info_note"))
                 )));
 
-        // Confirm button
+        // Confirm Button
         inv.setItem(13, createItem(Material.EMERALD_BLOCK,
-                "§aConfirm Expansion",
-                List.of("§7Click to confirm request", "§7and pay cost upon approval")));
+                plugin.msg().color("&a" + plugin.msg().get(player, "expansion_confirm_button")),
+                List.of(plugin.msg().color("&7" + plugin.msg().get(player, "expansion_confirm_lore")))));
 
-        // Cancel button
+        // Cancel Button
         inv.setItem(15, createItem(Material.REDSTONE_BLOCK,
-                "§cCancel Request",
-                List.of("§7Cancel and return to menu")));
+                plugin.msg().color("&c" + plugin.msg().get(player, "expansion_cancel_button")),
+                List.of(plugin.msg().color("&7" + plugin.msg().get(player, "expansion_cancel_lore")))));
 
-        // Exit button
+        // Exit Button
         inv.setItem(26, createItem(Material.BARRIER,
-                "§cExit",
-                List.of("§7Close this menu")));
+                plugin.msg().get(player, "button_exit"),
+                plugin.msg().getList(player, "exit_lore")));
 
         player.openInventory(inv);
         plugin.sounds().playMenuOpen(player);
@@ -96,10 +102,10 @@ public class ExpansionRequestGUI {
         e.setCancelled(true);
         if (e.getCurrentItem() == null) return;
 
-        Material type = e.getCurrentItem().getType();
         String title = e.getView().getTitle();
-        if (!title.equals("📏 Expansion Request")) return;
+        if (!title.equalsIgnoreCase(plugin.msg().get(player, "expansion_request_title"))) return;
 
+        Material type = e.getCurrentItem().getType();
         PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
         if (plot == null) {
             plugin.msg().send(player, "no_plot_here");
@@ -109,25 +115,33 @@ public class ExpansionRequestGUI {
 
         switch (type) {
             case EMERALD_BLOCK -> {
-                int newRadius = Math.min(plot.getRadius() + 8, plugin.getConfig().getInt("claims.max_radius", 64));
+                int newRadius = Math.min(plot.getRadius() + 8,
+                        plugin.getConfig().getInt("claims.max_radius", 64));
+
                 if (manager.hasActiveRequest(player.getUniqueId())) {
-                    player.sendMessage("§e⚠ You already have an active request.");
+                    plugin.msg().send(player, "expansion_exists");
+                    plugin.sounds().playError(player);
                     return;
                 }
 
-                if (manager.createRequest(player, plot, newRadius)) {
-                    player.sendMessage("§a✔ Expansion request submitted!");
-                    player.closeInventory();
+                boolean success = manager.createRequest(player, plot, newRadius);
+                if (success) {
+                    plugin.msg().send(player, "expansion_submitted");
                     plugin.sounds().playMenuFlip(player);
                 } else {
-                    plugin.sounds().playMenuClose(player);
+                    plugin.msg().send(player, "expansion_invalid");
+                    plugin.sounds().playError(player);
                 }
+                player.closeInventory();
             }
 
             case REDSTONE_BLOCK -> {
                 if (manager.hasActiveRequest(player.getUniqueId())) {
                     manager.clear(player.getUniqueId());
-                    player.sendMessage("§c❌ Expansion request cancelled.");
+                    plugin.msg().send(player, "expansion_denied",
+                            Map.of("PLAYER", player.getName()));
+                } else {
+                    plugin.msg().send(player, "expansion_invalid");
                 }
                 plugin.sounds().playMenuClose(player);
                 player.closeInventory();
