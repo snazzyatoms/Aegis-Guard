@@ -1,12 +1,67 @@
 name: AegisGuard
 main: com.aegisguard.AegisGuard
-version: 1.0
+version: 1.0.0
 api-version: "1.20"
+prefix: AegisGuard
+description: Lightweight, friendly land protection with roles, safe zones, and polished GUIs.
+authors: ["(snazzyatoms)"]
+website: "https://discord.gg/your-invite"   # replace later
+folia-supported: true
+
 commands:
   aegis:
     description: Main AegisGuard command
-    usage: /aegis <wand|menu|claim|unclaim>
+    usage: "/aegis <menu|wand|claim|unclaim|reload>"
+    aliases: [ag, guard]
+    permission: aegis.use
+
 permissions:
-  aegis.use:
-    description: Use AegisGuard commands
+  aegis.*:
+    description: All AegisGuard permissions
+    default: op
+    children:
+      aegis.user: true
+      aegis.admin: true
+
+  aegis.user:
+    description: Player functionality
     default: true
+    children:
+      aegis.use: true
+      aegis.menu: true
+      aegis.wand: true
+      aegis.claim: true
+      aegis.unclaim: true
+
+  aegis.admin:
+    description: Admin / management features
+    default: op
+    children:
+      aegis.reload: true
+      aegis.claim.other: true
+      aegis.unclaim.other: true
+
+  aegis.use:
+    description: Use /aegis
+    default: true
+  aegis.menu:
+    description: Open GUI menu
+    default: true
+  aegis.wand:
+    description: Use the claim wand
+    default: true
+  aegis.claim:
+    description: Claim your own chunks/regions
+    default: true
+  aegis.unclaim:
+    description: Unclaim your own chunks/regions
+    default: true
+  aegis.reload:
+    description: Reload AegisGuard config
+    default: op
+  aegis.claim.other:
+    description: Claim on behalf of others
+    default: op
+  aegis.unclaim.other:
+    description: Unclaim others' claims
+    default: op
