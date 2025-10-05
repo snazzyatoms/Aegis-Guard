@@ -35,7 +35,7 @@ public class PlotStore {
         this.file = new File(plugin.getDataFolder(), "plots.yml");
         load();
 
-        // Register ban listener
+        // Register ban listener (Paper API). If not present at runtime, no issue—class exists when compiling against paper-api.
         Bukkit.getPluginManager().registerEvents(new BanListener(), plugin);
     }
 
@@ -62,7 +62,7 @@ public class PlotStore {
             this.x2 = Math.max(x1, x2);
             this.z2 = Math.max(z1, z2);
 
-            // Default protections ON
+            // Default protections ON (can be overridden by config defaults via ProtectionManager.def)
             flags.put("pvp", true);
             flags.put("containers", true);
             flags.put("mobs", true);
@@ -85,6 +85,7 @@ public class PlotStore {
         public Map<UUID, String> getTrustedNames() { return trustedNames; }
 
         public boolean isInside(Location loc) {
+            if (loc == null || loc.getWorld() == null) return false;
             if (!loc.getWorld().getName().equals(world)) return false;
             int x = loc.getBlockX();
             int z = loc.getBlockZ();
@@ -101,25 +102,36 @@ public class PlotStore {
      * Load / Save
      * ----------------------------- */
     public void load() {
-        if (!file.exists()) try { file.createNewFile(); } catch (IOException ignored) {}
+        try {
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
+        } catch (IOException ignored) {}
         this.data = YamlConfiguration.loadConfiguration(file);
         plots.clear();
 
         if (data.isConfigurationSection("plots")) {
             for (String ownerId : data.getConfigurationSection("plots").getKeys(false)) {
-                UUID owner = UUID.fromString(ownerId);
+                UUID owner;
+                try { owner = UUID.fromString(ownerId); }
+                catch (IllegalArgumentException ex) { continue; }
+
                 String ownerPath = "plots." + ownerId;
 
-                // Migration: single-plot legacy
+                // Legacy single-plot format (plots.<owner>.*)
                 if (data.isSet(ownerPath + ".x1")) {
                     migrateLegacy(owner);
                     continue;
                 }
 
-                // Multi-plot
+                // Multi-plot format (plots.<owner>.<plotId>.*)
                 for (String plotIdStr : data.getConfigurationSection(ownerPath).getKeys(false)) {
                     String path = ownerPath + "." + plotIdStr;
-                    UUID plotId = UUID.fromString(plotIdStr);
+                    UUID plotId;
+                    try { plotId = UUID.fromString(plotIdStr); }
+                    catch (IllegalArgumentException ex) { continue; }
+
                     String ownerName = data.getString(path + ".owner-name", "Unknown");
                     String world = data.getString(path + ".world");
                     int x1 = data.getInt(path + ".x1");
@@ -127,15 +139,19 @@ public class PlotStore {
                     int x2 = data.getInt(path + ".x2");
                     int z2 = data.getInt(path + ".z2");
 
+                    if (world == null) continue; // skip corrupt entries
+
                     Plot plot = new Plot(plotId, owner, ownerName, world, x1, z1, x2, z2);
 
                     // Trusted
                     if (data.isConfigurationSection(path + ".trusted")) {
                         for (String uuidStr : data.getConfigurationSection(path + ".trusted").getKeys(false)) {
-                            UUID t = UUID.fromString(uuidStr);
-                            String tName = data.getString(path + ".trusted." + uuidStr, "Unknown");
-                            plot.getTrusted().add(t);
-                            plot.getTrustedNames().put(t, tName);
+                            try {
+                                UUID t = UUID.fromString(uuidStr);
+                                String tName = data.getString(path + ".trusted." + uuidStr, "Unknown");
+                                plot.getTrusted().add(t);
+                                plot.getTrustedNames().put(t, tName);
+                            } catch (IllegalArgumentException ignored) {}
                         }
                     }
 
@@ -167,8 +183,29 @@ public class PlotStore {
         int x2 = data.getInt(base + ".x2");
         int z2 = data.getInt(base + ".z2");
 
+        if (world == null) return;
+
         UUID plotId = UUID.randomUUID();
         Plot plot = new Plot(plotId, owner, ownerName, world, x1, z1, x2, z2);
+
+        // migrate legacy trusted (if present)
+        if (data.isConfigurationSection(base + ".trusted")) {
+            for (String uuidStr : data.getConfigurationSection(base + ".trusted").getKeys(false)) {
+                try {
+                    UUID t = UUID.fromString(uuidStr);
+                    String tName = data.getString(base + ".trusted." + uuidStr, "Unknown");
+                    plot.getTrusted().add(t);
+                    plot.getTrustedNames().put(t, tName);
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+        // migrate legacy flags (if present)
+        if (data.isConfigurationSection(base + ".flags")) {
+            for (String flagKey : data.getConfigurationSection(base + ".flags").getKeys(false)) {
+                boolean val = data.getBoolean(base + ".flags." + flagKey, true);
+                plot.setFlag(flagKey, val);
+            }
+        }
 
         plots.computeIfAbsent(owner, k -> new ArrayList<>()).add(plot);
         data.set(base, null); // clear old
@@ -177,9 +214,13 @@ public class PlotStore {
 
     public void save() {
         data.set("plots", null); // clear
-        for (UUID owner : plots.keySet()) {
-            for (Plot plot : plots.get(owner)) {
-                String path = "plots." + owner.toString() + "." + plot.getPlotId();
+        for (Map.Entry<UUID, List<Plot>> entry : plots.entrySet()) {
+            UUID owner = entry.getKey();
+            List<Plot> list = entry.getValue();
+            if (list == null || list.isEmpty()) continue;
+
+            for (Plot plot : list) {
+                String path = "plots." + owner + "." + plot.getPlotId();
 
                 OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
                 plot.setOwnerName(op.getName() != null ? op.getName() : "Unknown");
@@ -191,19 +232,25 @@ public class PlotStore {
                 data.set(path + ".x2", plot.getX2());
                 data.set(path + ".z2", plot.getZ2());
 
-                for (UUID t : plot.getTrusted()) {
+                // Trusted names refresh (ensures latest names)
+                for (UUID t : new HashSet<>(plot.getTrusted())) {
                     OfflinePlayer tp = Bukkit.getOfflinePlayer(t);
                     plot.getTrustedNames().put(t, tp.getName() != null ? tp.getName() : "Unknown");
                 }
-                for (UUID t : plot.getTrustedNames().keySet()) {
-                    data.set(path + ".trusted." + t.toString(), plot.getTrustedNames().get(t));
+                for (Map.Entry<UUID, String> tn : plot.getTrustedNames().entrySet()) {
+                    data.set(path + ".trusted." + tn.getKey(), tn.getValue());
                 }
+
                 for (Map.Entry<String, Boolean> flag : plot.getFlags().entrySet()) {
                     data.set(path + ".flags." + flag.getKey(), flag.getValue());
                 }
             }
         }
-        try { data.save(file); } catch (IOException e) { e.printStackTrace(); }
+        try {
+            data.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void flushSync() { save(); }
@@ -212,19 +259,25 @@ public class PlotStore {
      * Plot Management
      * ----------------------------- */
     public List<Plot> getPlots(UUID owner) {
-        return plots.getOrDefault(owner, Collections.emptyList());
+        List<Plot> list = plots.get(owner);
+        return (list == null) ? Collections.emptyList() : Collections.unmodifiableList(list);
     }
 
     public Plot getPlot(UUID owner, UUID plotId) {
-        return getPlots(owner).stream().filter(p -> p.getPlotId().equals(plotId)).findFirst().orElse(null);
+        return plots.getOrDefault(owner, Collections.emptyList())
+                .stream().filter(p -> p.getPlotId().equals(plotId)).findFirst().orElse(null);
     }
 
     public void createPlot(UUID owner, Location c1, Location c2) {
+        if (c1 == null || c2 == null || c1.getWorld() == null || c2.getWorld() == null) return;
+        if (!c1.getWorld().equals(c2.getWorld())) return; // must be same world
+
         boolean bypass = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
+        boolean isOp = Bukkit.getOfflinePlayer(owner).isOp();
         List<Plot> owned = plots.computeIfAbsent(owner, k -> new ArrayList<>());
 
-        // Enforce claim limit unless admin bypass applies
-        if (!bypass || !Bukkit.getOfflinePlayer(owner).isOp()) {
+        // Enforce claim limit unless admin bypass applies (bypass must be enabled AND player must be op)
+        if (!(bypass && isOp)) {
             int max = plugin.getConfig().getInt("claims.max_claims_per_player", 1);
             if (owned.size() >= max) return;
         }
@@ -253,13 +306,15 @@ public class PlotStore {
     }
 
     public void removeAllPlots(UUID owner) {
-        plots.remove(owner);
-        save();
+        if (plots.remove(owner) != null) {
+            save();
+        }
     }
 
     public boolean hasPlots(UUID owner) { return !getPlots(owner).isEmpty(); }
 
     public Plot getPlotAt(Location loc) {
+        if (loc == null) return null;
         for (List<Plot> list : plots.values()) {
             for (Plot p : list) {
                 if (p.isInside(loc)) return p;
@@ -268,7 +323,7 @@ public class PlotStore {
         return null;
     }
 
-    public Set<UUID> owners() { return plots.keySet(); }
+    public Set<UUID> owners() { return Collections.unmodifiableSet(plots.keySet()); }
 
     /* -----------------------------
      * Trusted Management
@@ -304,7 +359,7 @@ public class PlotStore {
         boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false);
 
         Set<UUID> toRemove = new HashSet<>();
-        for (UUID owner : plots.keySet()) {
+        for (UUID owner : new HashSet<>(plots.keySet())) {
             OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
             if (op.isBanned()) {
                 toRemove.add(owner);
@@ -315,17 +370,17 @@ public class PlotStore {
                     Bukkit.broadcastMessage(plugin.msg().prefix() + msg);
                 } else {
                     Bukkit.getOnlinePlayers().stream()
-                            .filter(p -> p.hasPermission("aegisguard.admin"))
+                            .filter(p -> p.hasPermission("aegis.admin")) // standardized perm
                             .forEach(p -> p.sendMessage(plugin.msg().prefix() + msg));
                 }
             }
         }
         for (UUID id : toRemove) plots.remove(id);
-        save();
+        if (!toRemove.isEmpty()) save();
     }
 
     /* -----------------------------
-     * Ban Listener
+     * Ban Listener (Paper API)
      * ----------------------------- */
     private class BanListener implements Listener {
         @EventHandler
