@@ -6,14 +6,20 @@ prefix: AegisGuard
 description: Lightweight, friendly land protection with roles, safe zones, and polished GUIs.
 authors: ["(snazzyatoms)"]
 website: "https://discord.gg/your-invite"   # replace later
+softdepend: [Vault]
 folia-supported: true
 
 commands:
   aegis:
     description: Main AegisGuard command
-    usage: "/aegis <menu|wand|claim|unclaim|reload>"
+    usage: "/aegis <menu|wand|claim|unclaim|sound>"
     aliases: [ag, guard]
     permission: aegis.use
+  aegisadmin:
+    description: AegisGuard admin menu & tools
+    usage: "/aegisadmin [reload]"
+    aliases: [agadmin]
+    permission: aegis.admin
 
 permissions:
   aegis.*:
