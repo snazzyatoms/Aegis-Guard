@@ -5,7 +5,7 @@ api-version: "1.20"
 prefix: AegisGuard
 description: Lightweight, friendly land protection with roles, safe zones, and polished GUIs.
 authors: ["(snazzyatoms)"]
-website: "https://discord.gg/your-invite"   # replace later
+website: "https://discord.gg/q7F5mAHyRS"   
 softdepend: [Vault]
 folia-supported: true
 
