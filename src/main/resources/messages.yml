@@ -1,12 +1,12 @@
 # ======================================
 # AegisGuard v1.0 - Messages
 # ======================================
-# Multilingual Style System:
+# Multilingual Tone System:
 #   Players may choose their preferred "tone of English" in Settings:
 #     - old_english (Default)
 #     - hybrid_english
 #     - modern_english
-#   Choice is per-player, updated instantly.
+#   Choices are per-player and update instantly — no reload needed.
 # ======================================
 
 prefix: "&8[&bAegisGuard&8]&r "
@@ -22,30 +22,30 @@ language_styles:
 # GUI Texts Shared Across All Styles
 # ======================================
 
-# Language selector lore shown in Settings GUI
 language_style_lore:
-  - "&7Switch the tone of AegisGuard's speech."
-  - "&8Choose between ancient & modern tongues."
-  - "&7Current options:"
-  - "&f - Old English &8(Thou hast...)"
-  - "&f - Hybrid English &8(Thou hast/You have...)"
-  - "&f - Modern English &8(You have...)"
-  - "&eClick to cycle tone instantly."
+  - "&7Switch the tone of AegisGuard’s speech."
+  - "&8Choose between ancient and modern tongues."
+  - "&7Available tones:"
+  - "&f • &dOld English &8(Thou hast...)"
+  - "&f • &eHybrid English &8(Thou hast / You have...)"
+  - "&f • &aModern English &8(You have...)"
+  - "&eClick to cycle instantly."
 
-# Shared GUI button/lore (unchanging)
 button_back: "&eBack"
 button_exit: "&cExit"
+
 back_lore:
   - "&7Return to the Guardian Codex"
+
 exit_lore:
-  - "&7Close the Codex"
+  - "&7Close the Codex and return to your realm"
 
 # ======================================
 # OLD ENGLISH STYLE (Default)
 # ======================================
 old_english:
   no_perm: "&cThou hast not the authority for such an act."
-  players_only: "&cOnly mortals in flesh may wield this command."
+  players_only: "&cOnly mortals of flesh may wield this command."
   usage_main: "&eSpeak thus: /aegis <wand|menu|claim|unclaim|help>"
 
   wand_given: "&a⚡ Behold! The Aegis Scepter is bestowed upon thee."
@@ -53,15 +53,15 @@ old_english:
   corner2_set: "&b⚡ Thy second boundary is set at &e{X}, {Z}."
   must_select: "&c❌ Thou must select two sacred points with thine Scepter."
   already_has_plot: "&c❌ Thou already possesseth land. Relinquish it first."
-  plot_created: "&a✔ Verily, thy land is now protected under Aegis Guard."
+  plot_created: "&a✔ Verily, thy land is now shielded under Aegis Guard."
   plot_unclaimed: "&e⚠ Thy claim hath been released unto the wilds."
 
   cannot_break: "&c❌ Nay! These stones are guarded by divine decree."
-  cannot_place: "&c❌ Thou mayest not place objects upon protected ground."
-  cannot_interact: "&c❌ The relics here are not for thy hand to touch."
-  cannot_attack: "&c❌ Violence is forbidden under Aegis’s gaze."
+  cannot_place: "&c❌ Thou mayest not place objects upon consecrated soil."
+  cannot_interact: "&c❌ These relics are not for thine hand to touch."
+  cannot_attack: "&c❌ Violence is forbidden under Aegis’s watchful gaze."
 
-  need_vault: "&c❌ Thy coffers contain less than &e${AMOUNT}&c gold."
+  need_vault: "&c❌ Thy coffers hold less than &e${AMOUNT}&c gold."
   cost_deducted: "&e💰 Tribute of &6${AMOUNT}&e hath been rendered."
   vault_refund: "&e💰 Recompense of &6${AMOUNT}&e ({PERCENT}%) hath been returned to thee."
 
@@ -85,8 +85,8 @@ old_english:
   sound_disabled: "&c❌ The voice of Aegis falleth silent."
 
   # Expansion Request System
-  expansion_submitted: "&a✔ Thy plea for expansion hath been recorded in the archives."
-  expansion_denied: "&c✖ Thy supplication hath been rejected by {PLAYER}."
+  expansion_submitted: "&a✔ Thy plea for expansion hath been recorded within the archives."
+  expansion_denied: "&c✖ Thy supplication hath been refused by {PLAYER}."
   expansion_approved: "&a⚔ Thy dominion hath been extended by decree of {PLAYER}."
   expansion_invalid: "&c⚠ This scroll of request is now void and withered."
   expansion_exists: "&e⚠ Thou hast a pending petition—await thy fate, lest the scribes frown."
@@ -108,7 +108,7 @@ old_english:
 # ======================================
 hybrid_english:
   no_perm: "&cThou lacketh permission for this command."
-  players_only: "&cOnly living adventurers may use this."
+  players_only: "&cOnly living adventurers may wield this."
   usage_main: "&eCommand thus: /aegis <wand|menu|claim|unclaim|help>"
 
   wand_given: "&a⚡ The Aegis Scepter hath been granted."
@@ -131,6 +131,8 @@ hybrid_english:
     - "&e/aegis wand &7- Receive the Scepter"
     - "&e/aegis menu &7- Open the Guardian Codex"
     - "&e/aegis claim &7- Claim thy chosen land"
+    - "&e/aegis unclaim &7- Release thy claim"
+    - "&e/aegis help &7- Learn the Codex commands"
 
 # ======================================
 # MODERN ENGLISH STYLE
