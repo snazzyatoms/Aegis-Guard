@@ -22,11 +22,12 @@ import java.util.*;
  *  - Vault economy (via VaultHook)
  *  - Item-based economy (config-driven)
  *  - Per-world restrictions (via WorldRulesManager)
+ *  - Multilingual tone support via MessagesUtil
  *
- * TODO:
- *  - Add persistence (YAML or JSON)
- *  - Add GUI integration (ExpansionRequestGUI)
- *  - Add admin override and cooldowns
+ * Features:
+ *  - Player & admin notifications
+ *  - Placeholder formatting
+ *  - Dynamic cost scaling per world
  */
 public class ExpansionRequestManager {
 
@@ -38,26 +39,27 @@ public class ExpansionRequestManager {
     }
 
     /* -----------------------------
-     * Core Logic
+     * Create Request
      * ----------------------------- */
-
-    /**
-     * Create a new expansion request for a player's plot.
-     * Handles cost validation and world checks.
-     */
     public boolean createRequest(Player requester, PlotStore.Plot plot, int newRadius) {
         if (plot == null) {
             plugin.msg().send(requester, "no_plot_here");
             return false;
         }
 
-        // Prevent self-request if not owner
+        // Only owners may expand
         if (!plot.getOwner().equals(requester.getUniqueId())) {
             plugin.msg().send(requester, "no_perm");
             return false;
         }
 
-        // Check per-world restrictions
+        // Check if this player already has a pending expansion
+        if (hasActiveRequest(requester.getUniqueId())) {
+            plugin.msg().send(requester, "expansion_exists");
+            return false;
+        }
+
+        // Check per-world rules
         WorldRulesManager rules = plugin.worldRules();
         if (!rules.allowClaims(requester.getWorld())) {
             requester.sendMessage("§c❌ Claims and expansions are disabled in this world.");
@@ -66,14 +68,14 @@ public class ExpansionRequestManager {
 
         int currentRadius = plot.getRadius();
         if (newRadius <= currentRadius) {
-            requester.sendMessage("§e⚠ Requested radius must be larger than current (" + currentRadius + ").");
+            requester.sendMessage("§e⚠ Requested radius must exceed the current radius (" + currentRadius + ").");
             return false;
         }
 
-        // Calculate cost (Vault or item)
+        // Calculate cost dynamically
         double cost = calculateCost(requester.getWorld().getName(), currentRadius, newRadius);
 
-        // Create request model
+        // Create request record
         ExpansionRequest request = new ExpansionRequest(
                 requester.getUniqueId(),
                 plot.getOwner(),
@@ -84,34 +86,40 @@ public class ExpansionRequestManager {
         );
 
         activeRequests.put(requester.getUniqueId(), request);
-        requester.sendMessage("§a📜 Expansion request created! Awaiting confirmation...");
+
+        Map<String, String> placeholders = Map.of(
+                "PLAYER", requester.getName(),
+                "AMOUNT", String.format("%.2f", cost)
+        );
+
+        plugin.msg().send(requester, "expansion_submitted", placeholders);
+        plugin.getLogger().info("[AegisGuard] Expansion request submitted by " + requester.getName() +
+                " → Radius: " + currentRadius + " → " + newRadius);
         return true;
     }
 
-    /**
-     * Approve an existing expansion request.
-     * Deducts currency or items and applies radius increase.
-     */
-    public boolean approveRequest(UUID requesterId) {
-        ExpansionRequest req = activeRequests.get(requesterId);
+    /* -----------------------------
+     * Approve Request
+     * ----------------------------- */
+    public boolean approveRequest(ExpansionRequest req) {
         if (req == null) return false;
 
         OfflinePlayer requester = Bukkit.getOfflinePlayer(req.getRequester());
-        if (!(requester.isOnline())) return false;
+        if (!requester.isOnline()) return false;
 
         Player p = requester.getPlayer();
         if (p == null) return false;
 
-        // Deduct cost
+        // Charge cost
         if (!chargePlayer(p, req.getCost(), req.getWorldName())) {
-            p.sendMessage("§c❌ Expansion failed: insufficient funds.");
+            plugin.msg().send(p, "need_vault", Map.of("AMOUNT", String.format("%.2f", req.getCost())));
             return false;
         }
 
-        // Apply expansion (temporary logic)
+        // Apply expansion
         PlotStore.Plot plot = plugin.store().getPlotAt(p.getLocation());
         if (plot == null) {
-            p.sendMessage("§c❌ Plot not found for expansion.");
+            plugin.msg().send(p, "expansion_invalid");
             return false;
         }
 
@@ -119,42 +127,39 @@ public class ExpansionRequestManager {
         plugin.store().savePlot(plot);
         req.approve();
 
-        p.sendMessage("§a✔ Your plot has been successfully expanded!");
+        plugin.msg().send(p, "expansion_approved", Map.of("PLAYER", "Admin"));
         plugin.getLogger().info("[AegisGuard] Expansion approved for " + p.getName() +
-                " → Radius: " + req.getCurrentRadius() + " → " + req.getRequestedRadius());
-        activeRequests.remove(requesterId);
+                " (" + req.getCurrentRadius() + " → " + req.getRequestedRadius() + ")");
+        activeRequests.remove(p.getUniqueId());
         return true;
     }
 
-    /**
-     * Deny an existing expansion request.
-     */
-    public boolean denyRequest(UUID requesterId, Player admin) {
-        ExpansionRequest req = activeRequests.get(requesterId);
+    /* -----------------------------
+     * Deny Request
+     * ----------------------------- */
+    public boolean denyRequest(ExpansionRequest req) {
         if (req == null) return false;
 
         req.deny();
-        Player target = Bukkit.getPlayer(requesterId);
-        if (target != null)
-            target.sendMessage("§c❌ Your expansion request was denied by an admin.");
+        Player target = Bukkit.getPlayer(req.getRequester());
+        if (target != null) {
+            plugin.msg().send(target, "expansion_denied", Map.of("PLAYER", "Admin"));
+        }
 
-        admin.sendMessage("§e⚠ Denied expansion request for " + (target != null ? target.getName() : requesterId));
-        plugin.getLogger().info("[AegisGuard] Expansion request denied for " + requesterId);
-        activeRequests.remove(requesterId);
+        plugin.getLogger().info("[AegisGuard] Expansion request denied for " + req.getRequester());
+        activeRequests.remove(req.getRequester());
         return true;
     }
 
     /* -----------------------------
      * Cost Logic
      * ----------------------------- */
-
     private double calculateCost(String world, int currentRadius, int newRadius) {
         double baseCost = plugin.getConfig().getDouble("claim_cost", 100.0);
         double worldModifier = plugin.getConfig().getDouble("claims.per_world." + world + ".vault_cost", baseCost);
-
-        // Simple growth model: cost scales with radius increase
         int delta = newRadius - currentRadius;
-        return worldModifier * (delta / 4.0);
+
+        return Math.max(worldModifier * (delta / 4.0), 0);
     }
 
     private boolean chargePlayer(Player player, double amount, String worldName) {
@@ -164,13 +169,14 @@ public class ExpansionRequestManager {
             vault.withdraw(player, amount);
             return true;
         } else {
-            // Fallback: Item-based cost
+            // Item-based payment
             String path = "claims.per_world." + worldName + ".item_cost.";
             Material item = Material.matchMaterial(plugin.getConfig().getString(path + "type", "DIAMOND"));
             int amountRequired = plugin.getConfig().getInt(path + "amount", 5);
 
             ItemStack costItem = new ItemStack(item, amountRequired);
             if (!player.getInventory().containsAtLeast(costItem, amountRequired)) return false;
+
             player.getInventory().removeItem(costItem);
             return true;
         }
@@ -179,9 +185,14 @@ public class ExpansionRequestManager {
     /* -----------------------------
      * Utilities
      * ----------------------------- */
-
-    public ExpansionRequest get(UUID requesterId) {
+    public ExpansionRequest getRequest(UUID requesterId) {
         return activeRequests.get(requesterId);
+    }
+
+    public UUID getRequesterFromItem(org.bukkit.inventory.ItemStack item) {
+        // Placeholder for GUI integration
+        // Will be replaced when ExpansionRequestGUI is implemented
+        return null;
     }
 
     public boolean hasActiveRequest(UUID requesterId) {
@@ -198,5 +209,12 @@ public class ExpansionRequestManager {
 
     public Collection<ExpansionRequest> getActiveRequests() {
         return activeRequests.values();
+    }
+
+    /* -----------------------------
+     * Persistence (Placeholder)
+     * ----------------------------- */
+    public void saveAll() {
+        // TODO: Add YAML persistence support for expansion requests
     }
 }
