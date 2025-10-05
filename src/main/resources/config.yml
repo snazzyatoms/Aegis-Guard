@@ -1,36 +1,45 @@
 # ======================================
-# AegisGuard v1.0 - Config
+#  AegisGuard v1.0 - Config
+# ======================================
+#  Core configuration file for AegisGuard.
+#  Provides language, economy, claim, protection,
+#  expansion, and admin customization options.
 # ======================================
 
 # ======================================
-# Global Settings
+# 🗣️ Message & Language System
 # ======================================
 messages:
-  language_style: "old_english"  # Options: old_english / modern
-  allow_runtime_switch: true     # If true, allows live style switching via GUI/admin command
+  language_style: "old_english"        # Default tone: old_english / hybrid_english / modern_english
+  allow_runtime_switch: true           # If true, allows live switching via GUI or command
+  show_language_button_in_gui: true    # Displays the “Language Tone” selector in Settings GUI
 
 # ======================================
-# Economy (Global Defaults)
+# 💰 Economy (Global Defaults)
 # ======================================
-use_vault: true
-claim_cost: 100.0
-item_cost:
+use_vault: true                        # Use Vault economy for claims
+claim_cost: 100.0                      # Cost (Vault currency) per claim
+item_cost:                             # Alternative cost if use_vault = false
   type: DIAMOND
   amount: 5
-refund_on_unclaim: false
-refund_percent: 0
+
+refund_on_unclaim: false               # Enable refunding upon unclaim
+refund_percent: 0                      # Refund percentage (0 = none, 50 = half, etc.)
 
 # ======================================
-# Claims & Limits
+# 🧱 Claims & World Rules
 # ======================================
 claims:
+  # --- Global Claim Defaults ---
   max_claims_per_player: 1
   min_radius: 1
   max_radius: 32
   max_area: 16000
   preview_seconds: 10
 
+  # --- Optional Per-World Settings ---
   per_world:
+    # 🏰 Overworld – balanced protection
     world:
       use_vault: true
       vault_cost: 200.0
@@ -51,6 +60,7 @@ claims:
         entities_protection: true
         farm_protection: true
 
+    # 🔥 Nether – harsh realm, PvP & mobs allowed
     world_nether:
       use_vault: false
       item_cost:
@@ -70,6 +80,7 @@ claims:
         entities_protection: true
         farm_protection: false
 
+    # 🌌 The End – unclaimable and mysterious realm
     world_the_end:
       max_claims_per_player: 0
       protections:
@@ -81,14 +92,7 @@ claims:
         farm_protection: false
 
 # ======================================
-# Sounds
-# ======================================
-sounds:
-  global_enabled: true
-  players: {}
-
-# ======================================
-# Protections
+# ⚙️ Protections (Global Defaults)
 # ======================================
 protections:
   pvp_protection: true
@@ -98,9 +102,61 @@ protections:
   farm_protection: true
 
 # ======================================
-# Admin Options
+# 🔊 Sounds & Immersion
+# ======================================
+sounds:
+  global_enabled: true                 # Global sound toggle
+  players: {}                          # Per-player overrides (auto-managed)
+
+# ======================================
+# 🧾 Expansion Requests (Future System)
+# ======================================
+expansions:
+  enabled: true                        # Master toggle
+  approval_required: true              # Requires admin approval
+  cost:
+    use_vault: true
+    amount: 250.0
+  cooldown_minutes: 30                 # Cooldown before next request
+  notify_admins: true                  # Notify admins of new requests
+  persistence: true                    # Keep requests across restarts
+
+# ======================================
+# 🛡️ Protection Effects (Feedback Visuals)
+# ======================================
+protection_effects:
+  enabled: true
+  defaults:
+    deny_sound: BLOCK_NOTE_BLOCK_BASS
+    deny_particle: SMOKE_NORMAL
+    success_sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    success_particle: VILLAGER_HAPPY
+    fail_sound: BLOCK_ANVIL_LAND
+    fail_particle: SMOKE_NORMAL
+  pvp:
+    deny_sound: ENTITY_ENDERMAN_TELEPORT
+    deny_particle: REDSTONE
+  containers:
+    deny_sound: BLOCK_CHEST_LOCKED
+    deny_particle: CRIT
+  mobs:
+    deny_sound: ENTITY_ZOMBIE_ATTACK_IRON_DOOR
+    deny_particle: FLAME
+  pets:
+    deny_sound: ENTITY_CAT_HISS
+    deny_particle: HEART
+  entities:
+    deny_sound: BLOCK_ANVIL_PLACE
+    deny_particle: CRIT_MAGIC
+  farm:
+    deny_sound: BLOCK_CROP_BREAK
+    deny_particle: VILLAGER_ANGRY
+
+# ======================================
+# 🧩 Admin Options
 # ======================================
 admin:
-  auto_remove_banned: false
-  bypass_claim_limit: false
-  broadcast_admin_actions: false
+  auto_remove_banned: false            # Remove all plots of banned players
+  bypass_claim_limit: false            # Admins ignore claim limit
+  broadcast_admin_actions: false       # Show admin actions globally
+  allow_language_command: true         # Enable /aegis language <style>
