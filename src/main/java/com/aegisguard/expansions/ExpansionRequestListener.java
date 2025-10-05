@@ -8,6 +8,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -17,11 +19,10 @@ import java.util.UUID;
  * Expansion Requests for AegisGuard.
  *
  * Features:
- *  - Persistent ExpansionRequestManager integration
+ *  - Integrated multilingual message system
  *  - Admin approval / denial with broadcast
- *  - Automatic GUI routing
- *  - Multi-world & Vault support
- *  - Console + optional global logging
+ *  - GUI refresh and persistence support
+ *  - Multi-world & Vault compatible
  */
 public class ExpansionRequestListener implements Listener {
 
@@ -39,88 +40,92 @@ public class ExpansionRequestListener implements Listener {
         String title = ChatColor.stripColor(e.getView().getTitle());
         ExpansionRequestManager manager = plugin.getExpansionRequestManager();
 
-        // Match theme title
-        String guiTitle = ChatColor.stripColor(
-                plugin.msg().has("expansion_admin_title")
-                        ? plugin.msg().get("expansion_admin_title")
-                        : "AegisGuard — Expansion Requests"
-        );
+        // Match GUI title (using language tone)
+        String guiTitle = ChatColor.stripColor(plugin.msg().get(player, "expansion_admin_title"));
+        if (!title.equalsIgnoreCase(guiTitle)) return;
 
-        // --- Admin Expansion Menu Handling ---
-        if (title.equalsIgnoreCase(guiTitle)) {
-            e.setCancelled(true);
-            var item = e.getCurrentItem();
+        e.setCancelled(true);
+        var item = e.getCurrentItem();
 
-            // Each expansion request corresponds to a player’s request item
-            UUID requesterId = manager.getRequesterFromItem(item);
-            if (requesterId == null) {
-                player.sendMessage(ChatColor.RED + "⚠ Invalid request item!");
-                plugin.sounds().playError(player);
-                return;
-            }
-
-            Player target = Bukkit.getPlayer(requesterId);
-            ExpansionRequest request = manager.getRequest(requesterId);
-
-            if (request == null) {
-                player.sendMessage(ChatColor.RED + "❌ Request no longer exists!");
-                plugin.sounds().playError(player);
-                return;
-            }
-
-            switch (item.getType()) {
-                case EMERALD_BLOCK -> { // Approve
-                    manager.approveRequest(request);
-                    notifyPlayers(target, player, true);
-                    logAction(player, target, true);
-                    plugin.sounds().playConfirm(player);
-                }
-
-                case REDSTONE_BLOCK -> { // Deny
-                    manager.denyRequest(request);
-                    notifyPlayers(target, player, false);
-                    logAction(player, target, false);
-                    plugin.sounds().playError(player);
-                }
-
-                default -> plugin.sounds().playClick(player);
-            }
-
-            // Auto-refresh admin GUI
-            Bukkit.getScheduler().runTaskLater(plugin, () ->
-                    plugin.gui().expansionAdmin().open(player), 2L);
+        UUID requesterId = manager.getRequesterFromItem(item);
+        if (requesterId == null) {
+            plugin.msg().send(player, "expansion_invalid");
+            plugin.sounds().playError(player);
+            return;
         }
+
+        Player target = Bukkit.getPlayer(requesterId);
+        ExpansionRequest request = manager.getRequest(requesterId);
+
+        if (request == null) {
+            plugin.msg().send(player, "expansion_invalid");
+            plugin.sounds().playError(player);
+            return;
+        }
+
+        switch (item.getType()) {
+            case EMERALD_BLOCK -> { // Approve
+                manager.approveRequest(request);
+                notifyPlayers(target, player, true);
+                logAction(player, target, true);
+                plugin.sounds().playConfirm(player);
+            }
+
+            case REDSTONE_BLOCK -> { // Deny
+                manager.denyRequest(request);
+                notifyPlayers(target, player, false);
+                logAction(player, target, false);
+                plugin.sounds().playError(player);
+            }
+
+            default -> plugin.sounds().playClick(player);
+        }
+
+        // Refresh GUI
+        Bukkit.getScheduler().runTaskLater(plugin, () ->
+                plugin.gui().expansionAdmin().open(player), 2L);
     }
 
     /* ------------------------------------------------------
-     * Player + Admin Notifications
+     * Notifications
      * ------------------------------------------------------ */
     private void notifyPlayers(Player requester, Player admin, boolean approved) {
         if (requester != null) {
-            requester.sendMessage(approved
-                    ? ChatColor.GREEN + "✔ Your expansion request was approved by " + admin.getName() + "!"
-                    : ChatColor.RED + "❌ Your expansion request was denied by " + admin.getName() + ".");
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("PLAYER", admin.getName());
+
+            plugin.msg().send(requester,
+                    approved ? "expansion_approved" : "expansion_denied",
+                    placeholders);
         }
-        admin.sendMessage(approved
-                ? ChatColor.GREEN + "✔ Approved expansion for " + requester.getName() + "."
-                : ChatColor.RED + "❌ Denied expansion for " + requester.getName() + ".");
+
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("PLAYER", requester != null ? requester.getName() : "Unknown");
+
+        plugin.msg().send(admin,
+                approved ? "expansion_approved" : "expansion_denied",
+                placeholders);
 
         if (plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false)) {
-            Bukkit.broadcastMessage(approved
-                    ? ChatColor.GOLD + "[AegisGuard] " + ChatColor.YELLOW + requester.getName() + "’s expansion request was approved by " + admin.getName() + "!"
-                    : ChatColor.RED + "[AegisGuard] " + ChatColor.YELLOW + requester.getName() + "’s expansion request was denied by " + admin.getName() + ".");
+            Map<String, String> broadcastPlaceholders = new HashMap<>();
+            broadcastPlaceholders.put("PLAYER", admin.getName());
+
+            Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
+                    plugin.msg().get(admin,
+                            approved ? "expansion_broadcast_approved" : "expansion_broadcast_denied")
+                            .replace("{PLAYER}", admin.getName())));
         }
     }
 
     /* ------------------------------------------------------
-     * Console + Persistence Logging
+     * Logging
      * ------------------------------------------------------ */
     private void logAction(Player admin, Player requester, boolean approved) {
         String status = approved ? "APPROVED" : "DENIED";
         plugin.getLogger().info("[Expansion] " + admin.getName() + " " + status +
                 " expansion request for " + requester.getName());
 
-        // Persist result to disk
+        // Persist all current expansion requests
         plugin.getExpansionRequestManager().saveAll();
     }
 }
