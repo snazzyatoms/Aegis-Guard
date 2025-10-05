@@ -93,6 +93,15 @@ old_english:
   expansion_broadcast_approved: "&a📜 The realm knoweth: {PLAYER} hath blessed an expansion."
   expansion_broadcast_denied: "&c📜 The realm heareth: {PLAYER} hath denied a mortal’s plea."
 
+  # Expansion Request GUI
+  expansion_request_title: "📜 The Scroll of Expansion"
+  expansion_info_title: "Proclamation of Dominion"
+  expansion_info_note: "Thy tribute shall be weighed in gold or relic."
+  expansion_confirm_button: "Affirm Thine Request"
+  expansion_confirm_lore: "Submit thy plea unto the High Guardian."
+  expansion_cancel_button: "Withdraw Thy Petition"
+  expansion_cancel_lore: "Abandon thy claim for now."
+
   help_header: "&b⚔ &nThe Guardian’s Scroll of Instruction&r"
   help_lines:
     - "&7--------------------------------------"
@@ -126,6 +135,15 @@ hybrid_english:
   expansion_broadcast_approved: "&a📜 {PLAYER} hath approved an expansion."
   expansion_broadcast_denied: "&c📜 {PLAYER} hath refused an expansion."
 
+  # Expansion Request GUI
+  expansion_request_title: "📜 Expansion Request"
+  expansion_info_title: "Expansion Details"
+  expansion_info_note: "Thy request shall be reviewed by the Guardian."
+  expansion_confirm_button: "Confirm Request"
+  expansion_confirm_lore: "Submit thy expansion request."
+  expansion_cancel_button: "Cancel Request"
+  expansion_cancel_lore: "Go back without submitting."
+
   help_header: "&b⚔ &nGuardian’s Guide&r"
   help_lines:
     - "&e/aegis wand &7- Receive the Scepter"
@@ -158,6 +176,15 @@ modern_english:
   expansion_exists: "&e⚠ You already have a pending expansion request."
   expansion_broadcast_approved: "&a📜 {PLAYER} approved an expansion request!"
   expansion_broadcast_denied: "&c📜 {PLAYER} denied an expansion request."
+
+  # Expansion Request GUI
+  expansion_request_title: "📏 Expansion Request"
+  expansion_info_title: "Expansion Overview"
+  expansion_info_note: "Your request will be reviewed by an admin."
+  expansion_confirm_button: "Confirm Expansion"
+  expansion_confirm_lore: "Click to submit your expansion request."
+  expansion_cancel_button: "Cancel Expansion"
+  expansion_cancel_lore: "Return without sending your request."
 
   help_header: "&b⚔ Guardian Codex Help"
   help_lines:
