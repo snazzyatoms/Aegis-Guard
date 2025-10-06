@@ -61,7 +61,22 @@ public class AegisGuard extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
         Bukkit.getPluginManager().registerEvents(protection, this);
         Bukkit.getPluginManager().registerEvents(selection, this);
-        Bukkit.getPluginManager().registerEvents(plotStore, this); // if PlotStore implements Listener
+        // ❌ Do NOT register plotStore here; it isn't a Listener.
+
+        // Optional: live cleanup if a banned player attempts to join
+        if (getConfig().getBoolean("admin.auto_remove_banned", false)) {
+            Bukkit.getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+                @org.bukkit.event.EventHandler
+                public void onPreLogin(org.bukkit.event.player.AsyncPlayerPreLoginEvent e) {
+                    if (e.getLoginResult()
+                            == org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result.KICK_BANNED) {
+                        Bukkit.getScheduler().runTask(AegisGuard.this,
+                                () -> store().removeAllPlots(e.getUniqueId()));
+                        getLogger().info("[AegisGuard] Auto-removed plots for banned player (on login): " + e.getUniqueId());
+                    }
+                }
+            }, this);
+        }
 
         // Commands (null-safe)
         PluginCommand aegis = getCommand("aegis");
@@ -95,7 +110,7 @@ public class AegisGuard extends JavaPlugin {
      * Commands (/aegis)
      * ----------------------------- */
     @Override
-    public boolean onCommand(CommandSender sender, org.bukkit.command.Command cmd, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!cmd.getName().equalsIgnoreCase("aegis")) return false;
 
         if (!(sender instanceof Player p)) {
@@ -118,7 +133,7 @@ public class AegisGuard extends JavaPlugin {
             case "unclaim" -> selection.unclaimHere(p);
 
             case "sound" -> {
-                // Admin: global toggle only (per-player toggles can be added later)
+                // Admin: global toggle only
                 if (!p.hasPermission("aegis.admin")) {
                     msg().send(p, "no_perm");
                     return true;
@@ -135,7 +150,8 @@ public class AegisGuard extends JavaPlugin {
                 boolean enable = args[2].equalsIgnoreCase("on");
                 getConfig().set("sounds.global_enabled", enable);
                 saveConfig();
-                msg().send(p, enable ? "sound_global_enabled" : "sound_global_disabled");
+                // Use keys that exist in messages.yml
+                msg().send(p, enable ? "sound_enabled" : "sound_disabled");
             }
 
             default -> msg().send(p, "usage_main");
