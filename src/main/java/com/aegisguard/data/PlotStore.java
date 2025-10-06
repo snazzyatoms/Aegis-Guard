@@ -1,13 +1,12 @@
 package com.aegisguard.data;
 
 import com.aegisguard.AegisGuard;
+import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +17,7 @@ import java.util.*;
  * - Multi-plot support (per player configurable via config)
  * - Stores: owner, bounds, trusted, flags
  * - Persists to plots.yml
- * - Auto-removes banned players' plots (if enabled)
+ * - Optional: sweep & remove banned players' plots
  */
 public class PlotStore {
 
@@ -33,9 +32,8 @@ public class PlotStore {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "plots.yml");
         load();
-
-        // Register ban listener (Paper API). If not present at runtime, no issue—class exists when compiling against paper-api.
-        Bukkit.getPluginManager().registerEvents(new BanListener(), plugin);
+        // Note: No PlayerBanEvent exists in Bukkit/Paper. Use removeBannedPlots() on startup
+        // and optionally call it on a timer or on login from AegisGuard if you want live cleanup.
     }
 
     /* -----------------------------
@@ -61,7 +59,7 @@ public class PlotStore {
             this.x2 = Math.max(x1, x2);
             this.z2 = Math.max(z1, z2);
 
-            // Default protections ON (can be overridden by config defaults via ProtectionManager.def)
+            // Default protections ON (can be overridden later)
             flags.put("pvp", true);
             flags.put("containers", true);
             flags.put("mobs", true);
@@ -103,7 +101,8 @@ public class PlotStore {
     public void load() {
         try {
             if (!file.exists()) {
-                file.getParentFile().mkdirs();
+                File parent = file.getParentFile();
+                if (parent != null) parent.mkdirs();
                 file.createNewFile();
             }
         } catch (IOException ignored) {}
@@ -113,8 +112,11 @@ public class PlotStore {
         if (data.isConfigurationSection("plots")) {
             for (String ownerId : data.getConfigurationSection("plots").getKeys(false)) {
                 UUID owner;
-                try { owner = UUID.fromString(ownerId); }
-                catch (IllegalArgumentException ex) { continue; }
+                try {
+                    owner = UUID.fromString(ownerId);
+                } catch (IllegalArgumentException ex) {
+                    continue;
+                }
 
                 String ownerPath = "plots." + ownerId;
 
@@ -128,8 +130,11 @@ public class PlotStore {
                 for (String plotIdStr : data.getConfigurationSection(ownerPath).getKeys(false)) {
                     String path = ownerPath + "." + plotIdStr;
                     UUID plotId;
-                    try { plotId = UUID.fromString(plotIdStr); }
-                    catch (IllegalArgumentException ex) { continue; }
+                    try {
+                        plotId = UUID.fromString(plotIdStr);
+                    } catch (IllegalArgumentException ex) {
+                        continue;
+                    }
 
                     String ownerName = data.getString(path + ".owner-name", "Unknown");
                     String world = data.getString(path + ".world");
@@ -167,7 +172,7 @@ public class PlotStore {
             }
         }
 
-        // Auto-remove banned plots if enabled
+        // Sweep banned players on load if enabled
         if (plugin.getConfig().getBoolean("admin.auto_remove_banned", false)) {
             removeBannedPlots();
         }
@@ -231,7 +236,7 @@ public class PlotStore {
                 data.set(path + ".x2", plot.getX2());
                 data.set(path + ".z2", plot.getZ2());
 
-                // Trusted names refresh (ensures latest names)
+                // Refresh trusted names to latest known
                 for (UUID t : new HashSet<>(plot.getTrusted())) {
                     OfflinePlayer tp = Bukkit.getOfflinePlayer(t);
                     plot.getTrustedNames().put(t, tp.getName() != null ? tp.getName() : "Unknown");
@@ -278,7 +283,7 @@ public class PlotStore {
         // Enforce claim limit unless admin bypass applies (bypass must be enabled AND player must be op)
         if (!(bypass && isOp)) {
             int max = plugin.getConfig().getInt("claims.max_claims_per_player", 1);
-            if (owned.size() >= max) return;
+            if (max > 0 && owned.size() >= max) return;
         }
 
         OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
@@ -358,38 +363,32 @@ public class PlotStore {
         boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false);
 
         Set<UUID> toRemove = new HashSet<>();
+        BanList nameBans = Bukkit.getBanList(BanList.Type.NAME);
+
         for (UUID owner : new HashSet<>(plots.keySet())) {
             OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
-            if (op.isBanned()) {
-                toRemove.add(owner);
-                plugin.getLogger().info("[AegisGuard] Removed plots of banned player: " + op.getName());
+            String name = op.getName();
+            boolean isBanned = (name != null) && nameBans.isBanned(name);
 
-                String msg = plugin.msg().get("admin_removed_banned", "{PLAYER}", op.getName());
+            if (isBanned) {
+                toRemove.add(owner);
+                plugin.getLogger().info("[AegisGuard] Removed plots of banned player: " + name);
+
+                Map<String, String> ph = new HashMap<>();
+                ph.put("PLAYER", name);
+
                 if (broadcast) {
-                    Bukkit.broadcastMessage(plugin.msg().prefix() + msg);
+                    Bukkit.getOnlinePlayers().forEach(p ->
+                            plugin.msg().send(p, "admin_removed_banned", ph));
                 } else {
                     Bukkit.getOnlinePlayers().stream()
-                            .filter(p -> p.hasPermission("aegis.admin")) // standardized perm
-                            .forEach(p -> p.sendMessage(plugin.msg().prefix() + msg));
+                            .filter(p -> p.hasPermission("aegis.admin"))
+                            .forEach(p -> plugin.msg().send(p, "admin_removed_banned", ph));
                 }
             }
         }
+
         for (UUID id : toRemove) plots.remove(id);
         if (!toRemove.isEmpty()) save();
-    }
-
-    /* -----------------------------
-     * Ban Listener (Paper API)
-     * ----------------------------- */
-    private class BanListener implements Listener {
-        @EventHandler
-        public void onPlayerBan(PlayerBanEvent e) {
-            if (!plugin.getConfig().getBoolean("admin.auto_remove_banned", false)) return;
-            OfflinePlayer banned = Bukkit.getOfflinePlayer(e.getPlayer().getUniqueId());
-            if (banned == null) return;
-
-            removeAllPlots(banned.getUniqueId());
-            plugin.getLogger().info("[AegisGuard] Instantly removed plots for banned player: " + banned.getName());
-        }
     }
 }
