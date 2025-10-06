@@ -4,6 +4,7 @@ import com.aegisguard.AegisGuard;
 import com.aegisguard.data.PlotStore;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -50,7 +51,7 @@ public class SettingsGUI {
         } else {
             boolean soundsEnabled = plugin.isSoundEnabled(player);
             inv.setItem(10, createItem(
-                    soundsEnabled ? Material.NOTE_BLOCK : Material.BARRIER,
+                    soundsEnabled ? Material.NOTE_BLOCK : Material.RED_DYE, // avoid BARRIER to prevent case conflicts
                     soundsEnabled ? plugin.msg().get(player, "button_sounds_on") : plugin.msg().get(player, "button_sounds_off"),
                     plugin.msg().getList(player, "sounds_toggle_lore")
             ));
@@ -142,39 +143,46 @@ public class SettingsGUI {
         ));
 
         player.openInventory(inv);
-        if (plugin.sounds() != null) plugin.sounds().playMenuFlip(player);
+        playFlip(player);
     }
 
     /* -----------------------------
-     * Handle Clicks
+     * Handle Clicks (slot-based to avoid enum duplicates)
      * ----------------------------- */
     public void handleClick(Player player, InventoryClickEvent e) {
         e.setCancelled(true);
         if (e.getCurrentItem() == null) return;
 
-        Material type = e.getCurrentItem().getType();
+        // Only react to clicks in the top inventory (our GUI)
+        if (e.getRawSlot() < 0 || e.getRawSlot() >= 54) return;
 
-        switch (type) {
-            // Sounds
-            case NOTE_BLOCK, BARRIER -> {
-                boolean currentlyEnabled = plugin.isSoundEnabled(player);
-                plugin.getConfig().set("sounds.players." + player.getUniqueId(), !currentlyEnabled);
-                plugin.saveConfig();
+        int slot = e.getRawSlot();
+        switch (slot) {
+            case 10 -> { // Sounds
+                boolean globalEnabled = plugin.getConfig().getBoolean("sounds.global_enabled", true);
+                if (!globalEnabled) {
+                    // Do nothing; globally disabled
+                    playError(player);
+                } else {
+                    boolean currentlyEnabled = plugin.isSoundEnabled(player);
+                    plugin.getConfig().set("sounds.players." + player.getUniqueId(), !currentlyEnabled);
+                    plugin.saveConfig();
+                    playFlip(player);
+                }
+            }
+            case 11 -> { plugin.protection().togglePvP(player);            playFlip(player); }
+            case 12 -> { plugin.protection().toggleContainers(player);     playFlip(player); }
+            case 13 -> { plugin.protection().toggleMobProtection(player);  playFlip(player); }
+            case 14 -> { plugin.protection().togglePetProtection(player);  playFlip(player); }
+            case 15 -> { plugin.protection().toggleEntityProtection(player); playFlip(player); }
+            case 16 -> { plugin.protection().toggleFarmProtection(player); playFlip(player); }
+
+            case 17 -> { // Safe Zone master toggle
+                toggleSafeZone(player);
+                playFlip(player);
             }
 
-            // Toggles
-            case IRON_SWORD, WOODEN_SWORD -> plugin.protection().togglePvP(player);
-            case CHEST, TRAPPED_CHEST -> plugin.protection().toggleContainers(player);
-            case ZOMBIE_HEAD, ROTTEN_FLESH -> plugin.protection().toggleMobProtection(player);
-            case BONE, LEAD -> plugin.protection().togglePetProtection(player);
-            case ARMOR_STAND, ITEM_FRAME -> plugin.protection().toggleEntityProtection(player);
-            case WHEAT, WHEAT_SEEDS -> plugin.protection().toggleFarmProtection(player);
-
-            // Safe Zone master toggle (handled directly here)
-            case SHIELD, IRON_NUGGET -> toggleSafeZone(player);
-
-            // Language Style Cycle
-            case BOOK, ENCHANTED_BOOK, WRITABLE_BOOK -> {
+            case 31 -> { // Language cycle
                 String current = plugin.msg().getPlayerStyle(player);
                 String next = switch (current) {
                     case "old_english" -> "hybrid_english";
@@ -182,15 +190,19 @@ public class SettingsGUI {
                     default -> "old_english";
                 };
                 plugin.msg().setPlayerStyle(player, next);
+                playFlip(player);
             }
 
-            // Navigation
-            case ARROW -> plugin.gui().openMain(player);
-            case BARRIER -> {
+            case 48 -> { // Back
+                plugin.gui().openMain(player);
+                playFlip(player);
+            }
+            case 49 -> { // Exit
                 player.closeInventory();
-                if (plugin.sounds() != null) plugin.sounds().playMenuClose(player);
+                playClose(player);
                 return;
             }
+            default -> { /* ignore filler */ }
         }
 
         open(player); // Refresh GUI instantly
@@ -213,9 +225,9 @@ public class SettingsGUI {
 
     private String formatStyle(String style) {
         return switch (style) {
-            case "modern_english" -> plugin.msg().color("&aModern English");
-            case "hybrid_english" -> plugin.msg().color("&eHybrid English");
-            default -> plugin.msg().color("&dOld English");
+            case "modern_english" -> "§aModern English";
+            case "hybrid_english" -> "§eHybrid English";
+            default -> "§dOld English";
         };
     }
 
@@ -228,7 +240,7 @@ public class SettingsGUI {
         PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
         if (plot == null) {
             plugin.msg().send(player, "no_plot_here");
-            if (plugin.sounds() != null) plugin.sounds().playMenuClose(player);
+            playClose(player);
             return;
         }
         boolean next = !plot.getFlag("safe_zone", true);
@@ -246,6 +258,11 @@ public class SettingsGUI {
 
         plugin.store().flushSync();
         plugin.msg().send(player, next ? "safe_zone_enabled" : "safe_zone_disabled");
-        if (plugin.sounds() != null) plugin.sounds().playMenuFlip(player);
     }
+
+    /* -----------------------------
+     * Inline sound helpers (no external manager)
+     * ----------------------------- */
+    private void playFlip(Player p)  { if (plugin.isSoundEnabled(p)) p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, 1.2f); }
+    private void playClose(Player p) { if (plugin.isSoundEnabled(p)) p.playSound(p.getLocation(), Sound.BLOCK_CHEST_CLOSE, 0.7f, 1.0f); }
 }
