@@ -1,2 +1,11 @@
+# jitpack.yml — build AegisGuard with Java 21 on JitPack
+
 jdk:
-  - openjdk21
+  - openjdk21       # If this image isn't available on your account, switch to: temurin-21
+
+before_install:
+  - java -version
+  - mvn -v
+
+install:
+  - mvn -B -Dmaven.test.skip=true -DskipTests=true clean install
