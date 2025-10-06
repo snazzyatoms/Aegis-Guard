@@ -1,126 +1,111 @@
-package com.aegisguard.gui;
+package com.aegisguard.expansions;
 
 import com.aegisguard.AegisGuard;
+import com.aegisguard.gui.GUIManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
-public class AdminGUI {
+/**
+ * Placeholder Expansion Admin GUI (ships with Community v1.0.0)
+ * - Compiles without any expansion backend.
+ * - Lets admins toggle a simple config switch and read "coming soon" text.
+ * - In future (paid) versions, wire this to a proper ExpansionRequestManager.
+ */
+public class ExpansionRequestAdminGUI {
 
     private final AegisGuard plugin;
 
-    public AdminGUI(AegisGuard plugin) {
+    public ExpansionRequestAdminGUI(AegisGuard plugin) {
         this.plugin = plugin;
     }
 
+    private String title() {
+        return plugin.msg().has("expansion_admin_title")
+                ? plugin.msg().get("expansion_admin_title")
+                : "§b🛡 AegisGuard — Expansion Admin";
+    }
+
     public void open(Player player) {
-        if (!player.hasPermission("aegis.admin")) { // standardized perm
-            player.sendMessage(m("no_perm", "§cYou don't have permission for that."));
+        if (!player.hasPermission("aegis.admin")) {
+            plugin.msg().send(player, "no_perm");
             return;
         }
 
-        String title = m("admin_menu_title", "§b§lAegisGuard §7— Admin");
-        Inventory inv = Bukkit.createInventory(null, 27, title);
+        Inventory inv = Bukkit.createInventory(null, 27, title());
 
-        inv.setItem(10, createItem(
-                Material.TNT,
-                m("button_admin_auto_remove", "§cAuto-remove Banned"),
-                l("admin_auto_remove_lore", List.of("§7Toggle auto removal of claims by banned players."))));
+        boolean enabled = plugin.getConfig().getBoolean("expansions.enabled", false);
 
-        inv.setItem(12, createItem(
-                Material.NETHER_STAR,
-                m("button_admin_bypass_limit", "§eBypass Claim Limit"),
-                l("admin_bypass_limit_lore", List.of("§7Allow admins to bypass player claim limits."))));
+        // Toggle expansions (config-only for now)
+        inv.setItem(10, GUIManager.icon(
+                enabled ? Material.AMETHYST_SHARD : Material.GRAY_DYE,
+                enabled ? "§aExpansion Requests: Enabled" : "§7Expansion Requests: Disabled",
+                List.of(
+                        "§7Toggle acceptance of expansion requests.",
+                        "§8(Placeholder; full system arrives later)"
+                )
+        ));
 
-        inv.setItem(14, createItem(
-                Material.BEACON,
-                m("button_admin_broadcast", "§bBroadcast Admin Actions"),
-                l("admin_broadcast_lore", List.of("§7Announce admin actions server-wide."))));
+        // Info block
+        inv.setItem(13, GUIManager.icon(
+                Material.BOOK,
+                "§bAbout Expansions",
+                List.of(
+                        "§7This menu is a preview.",
+                        "§7The full Expansion system will be",
+                        "§7available in a future premium release.",
+                        "§8You’ll be able to review, approve,",
+                        "§8deny, and auto-calc costs."
+                )
+        ));
 
-        inv.setItem(22, createItem(
+        // Back
+        inv.setItem(16, GUIManager.icon(
+                Material.ARROW,
+                "§eBack",
+                List.of("§7Return to Admin Menu")
+        ));
+
+        // Exit
+        inv.setItem(22, GUIManager.icon(
                 Material.BARRIER,
-                m("button_exit", "§cExit"),
-                l("exit_lore", List.of("§7Close this menu."))));
+                "§cExit",
+                List.of("§7Close the Codex")
+        ));
 
         player.openInventory(inv);
-        playOpen(player);
+        plugin.sounds().playMenuOpen(player);
     }
 
     public void handleClick(Player player, InventoryClickEvent e) {
-        ItemStack clicked = e.getCurrentItem();
-        if (clicked == null || clicked.getType().isAir()) return;
+        e.setCancelled(true);
+        if (e.getCurrentItem() == null) return;
 
-        switch (clicked.getType()) {
-            case TNT -> {
-                boolean autoRemove = plugin.getConfig().getBoolean("admin.auto_remove_banned", false);
-                plugin.getConfig().set("admin.auto_remove_banned", !autoRemove);
+        switch (e.getCurrentItem().getType()) {
+            case AMETHYST_SHARD, GRAY_DYE -> {
+                boolean cur = plugin.getConfig().getBoolean("expansions.enabled", false);
+                plugin.getConfig().set("expansions.enabled", !cur);
                 plugin.saveConfig();
-                player.sendMessage(m(!autoRemove ? "admin_auto_remove_enabled" : "admin_auto_remove_disabled",
-                        !autoRemove ? "§aAuto-remove enabled." : "§eAuto-remove disabled."));
-                playFlip(player);
+                plugin.sounds().ok(player);
+                open(player); // refresh
             }
-            case NETHER_STAR -> {
-                boolean bypass = plugin.getConfig().getBoolean("admin.bypass_claim_limit", false);
-                plugin.getConfig().set("admin.bypass_claim_limit", !bypass);
-                plugin.saveConfig();
-                player.sendMessage(m(!bypass ? "admin_bypass_enabled" : "admin_bypass_disabled",
-                        !bypass ? "§aBypass enabled." : "§eBypass disabled."));
-                playFlip(player);
+            case BOOK -> {
+                player.sendMessage("§b[Expansions] §7This is a preview. The full system arrives later.");
+                plugin.sounds().playMenuFlip(player);
             }
-            case BEACON -> {
-                boolean broadcast = plugin.getConfig().getBoolean("admin.broadcast_admin_actions", false);
-                plugin.getConfig().set("admin.broadcast_admin_actions", !broadcast);
-                plugin.saveConfig();
-                player.sendMessage(m(!broadcast ? "admin_broadcast_enabled" : "admin_broadcast_disabled",
-                        !broadcast ? "§aBroadcasts enabled." : "§eBroadcasts disabled."));
-                playFlip(player);
+            case ARROW -> {
+                plugin.gui().admin().open(player);
+                plugin.sounds().playMenuFlip(player);
             }
             case BARRIER -> {
                 player.closeInventory();
-                playClose(player);
-                return; // don't refresh if we just closed
+                plugin.sounds().playMenuClose(player);
             }
             default -> { /* ignore */ }
         }
-        open(player); // refresh state after toggle
     }
-
-    private ItemStack createItem(Material mat, String name, List<String> lore) {
-        ItemStack item = new ItemStack(mat);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            if (lore != null) meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    /* -----------------------------
-     * Message helpers
-     * ----------------------------- */
-    private String m(String key, String fallback) {
-        String v = plugin.msg().get(key);
-        return (v == null || v.isEmpty()) ? fallback : v;
-    }
-    private List<String> l(String key, List<String> fallback) {
-        List<String> v = plugin.msg().getList(key);
-        return (v == null || v.isEmpty()) ? fallback : v;
-    }
-
-    /* -----------------------------
-     * Sound helpers (no external manager)
-     * ----------------------------- */
-    private void playOpen(Player p) { if (plugin.isSoundEnabled(p)) p.playSound(p.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.7f, 1.0f); }
-    private void playClose(Player p){ if (plugin.isSoundEnabled(p)) p.playSound(p.getLocation(), Sound.BLOCK_CHEST_CLOSE, 0.7f, 1.0f); }
-    private void playFlip(Player p) { if (plugin.isSoundEnabled(p)) p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, 1.2f); }
 }
