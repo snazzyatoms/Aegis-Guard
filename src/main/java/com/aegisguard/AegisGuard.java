@@ -9,6 +9,7 @@ import com.aegisguard.gui.GUIManager;
 import com.aegisguard.protection.ProtectionManager;
 import com.aegisguard.selection.SelectionService;
 import com.aegisguard.util.MessagesUtil;
+import com.aegisguard.util.SoundUtil;
 import com.aegisguard.world.WorldRulesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -21,6 +22,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * AegisGuard – main entrypoint
+ */
 public class AegisGuard extends JavaPlugin {
 
     private AGConfig configMgr;
@@ -31,19 +35,21 @@ public class AegisGuard extends JavaPlugin {
     private VaultHook vault;
     private MessagesUtil messages;
     private WorldRulesManager worldRules;
+    private SoundUtil sounds;
 
-    public AGConfig cfg() { return configMgr; }
-    public PlotStore store() { return plotStore; }
-    public GUIManager gui() { return gui; }
-    public ProtectionManager protection() { return protection; }
-    public SelectionService selection() { return selection; }
-    public VaultHook vault() { return vault; }
-    public MessagesUtil msg() { return messages; }
-    public WorldRulesManager worldRules() { return worldRules; }
+    public AGConfig cfg()                { return configMgr; }
+    public PlotStore store()             { return plotStore; }
+    public GUIManager gui()              { return gui; }
+    public ProtectionManager protection(){ return protection; }
+    public SelectionService selection()  { return selection; }
+    public VaultHook vault()             { return vault; }
+    public MessagesUtil msg()            { return messages; }
+    public WorldRulesManager worldRules(){ return worldRules; }
+    public SoundUtil sounds()            { return sounds; }
 
     @Override
     public void onEnable() {
-        // Ensure bundled resources exist
+        // Bundle defaults
         saveDefaultConfig();
         saveResource("messages.yml", false);
 
@@ -56,22 +62,21 @@ public class AegisGuard extends JavaPlugin {
         this.messages   = new MessagesUtil(this);
         this.worldRules = new WorldRulesManager(this);
         this.protection = new ProtectionManager(this);
+        this.sounds     = new SoundUtil(this);
 
         // Listeners
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
         Bukkit.getPluginManager().registerEvents(protection, this);
         Bukkit.getPluginManager().registerEvents(selection, this);
-        // ❌ Do NOT register plotStore here; it isn't a Listener.
+        // Do NOT register plotStore; it's not a Listener.
 
-        // Optional: live cleanup if a banned player attempts to join
+        // Optional: clean plots if a banned user tries to join (since there is no PlayerBanEvent)
         if (getConfig().getBoolean("admin.auto_remove_banned", false)) {
             Bukkit.getPluginManager().registerEvents(new org.bukkit.event.Listener() {
                 @org.bukkit.event.EventHandler
                 public void onPreLogin(org.bukkit.event.player.AsyncPlayerPreLoginEvent e) {
-                    if (e.getLoginResult()
-                            == org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result.KICK_BANNED) {
-                        Bukkit.getScheduler().runTask(AegisGuard.this,
-                                () -> store().removeAllPlots(e.getUniqueId()));
+                    if (e.getLoginResult() == org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result.KICK_BANNED) {
+                        Bukkit.getScheduler().runTask(AegisGuard.this, () -> store().removeAllPlots(e.getUniqueId()));
                         getLogger().info("[AegisGuard] Auto-removed plots for banned player (on login): " + e.getUniqueId());
                     }
                 }
@@ -100,9 +105,7 @@ public class AegisGuard extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (plotStore != null) {
-            plotStore.flushSync();
-        }
+        if (plotStore != null) plotStore.flushSync();
         getLogger().info("AegisGuard disabled. Data saved.");
     }
 
@@ -150,7 +153,6 @@ public class AegisGuard extends JavaPlugin {
                 boolean enable = args[2].equalsIgnoreCase("on");
                 getConfig().set("sounds.global_enabled", enable);
                 saveConfig();
-                // Use keys that exist in messages.yml
                 msg().send(p, enable ? "sound_enabled" : "sound_disabled");
             }
 
@@ -182,13 +184,9 @@ public class AegisGuard extends JavaPlugin {
      * Utility: Sound Control
      * ----------------------------- */
     public boolean isSoundEnabled(Player player) {
-        if (!getConfig().getBoolean("sounds.global_enabled", true)) {
-            return false;
-        }
+        if (!getConfig().getBoolean("sounds.global_enabled", true)) return false;
         String key = "sounds.players." + player.getUniqueId();
-        if (getConfig().isSet(key)) {
-            return getConfig().getBoolean(key, true);
-        }
+        if (getConfig().isSet(key)) return getConfig().getBoolean(key, true);
         return true;
     }
 }
