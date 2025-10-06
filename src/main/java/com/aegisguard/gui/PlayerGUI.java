@@ -11,7 +11,6 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.Collections;
 import java.util.List;
 
 public class PlayerGUI {
@@ -23,39 +22,50 @@ public class PlayerGUI {
     }
 
     public void open(Player player) {
-        String title = m("menu_title", "§b§lAegisGuard §7— Menu");
+        String title = m(player, "menu_title", "§b§lAegisGuard §7— Menu");
         Inventory inv = Bukkit.createInventory(null, 27, title);
 
+        // Claim Land
         inv.setItem(11, createItem(
                 Material.LIGHTNING_ROD,
-                m("button_claim_land", "§aClaim Land"),
-                l("claim_land_lore", List.of("§7Select a region and confirm."))));
+                m(player, "button_claim_land", "§aClaim Land"),
+                l(player, "claim_land_lore", List.of("§7Select a region and confirm."))
+        ));
 
+        // Trusted Players
         inv.setItem(13, createItem(
                 Material.PLAYER_HEAD,
-                m("button_trusted_players", "§bTrusted Players"),
-                l("trusted_players_lore", List.of("§7Manage who can build on your land."))));
+                m(player, "button_trusted_players", "§bTrusted Players"),
+                l(player, "trusted_players_lore", List.of("§7Manage who can build on your land."))
+        ));
 
+        // Settings
         inv.setItem(15, createItem(
-                Material.REDSTONE_COMPARATOR,
-                m("button_settings", "§eSettings"),
-                l("settings_lore", List.of("§7Toggle options for your claims."))));
+                Material.COMPARATOR, // 1.20+ correct enum (fixes REDSTONE_COMPARATOR issue)
+                m(player, "button_settings", "§eSettings"),
+                l(player, "settings_lore", List.of("§7Toggle options for your claims."))
+        ));
 
+        // Info
         inv.setItem(22, createItem(
                 Material.WRITABLE_BOOK,
-                m("button_info", "§fInfo"),
-                l("info_lore", List.of("§7Learn about AegisGuard features."))));
+                m(player, "button_info", "§fInfo"),
+                l(player, "info_lore", List.of("§7Learn about AegisGuard features."))
+        ));
 
+        // Exit
         inv.setItem(26, createItem(
                 Material.BARRIER,
-                m("button_exit", "§cExit"),
-                l("exit_lore", List.of("§7Close this menu."))));
+                m(player, "button_exit", "§cExit"),
+                plugin.msg().getList(player, "exit_lore")
+        ));
 
         player.openInventory(inv);
         playOpen(player);
     }
 
     public void handleClick(Player player, InventoryClickEvent e) {
+        e.setCancelled(true); // prevent item pickup/move
         ItemStack clicked = e.getCurrentItem();
         if (clicked == null || clicked.getType().isAir()) return;
 
@@ -69,19 +79,20 @@ public class PlayerGUI {
                 plugin.gui().trusted().open(player);
                 playFlip(player);
             }
-            case REDSTONE_COMPARATOR -> {
+            case COMPARATOR -> {
                 plugin.gui().settings().open(player);
                 playFlip(player);
             }
             case WRITABLE_BOOK -> {
-                player.sendMessage(m("info_message", "§7AegisGuard: lightweight land protection with roles, safe zones, and GUIs."));
+                player.sendMessage(m(player, "info_message",
+                        "§7AegisGuard: lightweight land protection with roles, safe zones, and GUIs."));
                 playFlip(player);
             }
             case BARRIER -> {
                 player.closeInventory();
                 playClose(player);
             }
-            default -> { /* ignore */ }
+            default -> { /* ignore other slots */ }
         }
     }
 
@@ -98,17 +109,16 @@ public class PlayerGUI {
     }
 
     /* -----------------------------
-     * Message helpers (safe fallbacks)
+     * Message helpers (per-player tone + fallbacks)
      * ----------------------------- */
-    private String m(String key, String fallback) {
-        String v = plugin.msg().get(key);
+    private String m(Player player, String key, String fallback) {
+        String v = plugin.msg().get(player, key);
         return (v == null || v.isEmpty()) ? fallback : v;
     }
-    @SuppressWarnings("unchecked")
-    private List<String> l(String key, List<String> fallback) {
-        List<String> v = plugin.msg().getList(key);
+
+    private List<String> l(Player player, String key, List<String> fallback) {
+        List<String> v = plugin.msg().getList(player, key);
         return (v == null || v.isEmpty()) ? fallback : v;
-        // If your MessagesUtil returns raw List<Object>, cast/convert to List<String> there.
     }
 
     /* -----------------------------
