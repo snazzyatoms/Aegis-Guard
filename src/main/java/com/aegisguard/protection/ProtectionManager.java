@@ -2,16 +2,12 @@ package com.aegisguard.protection;
 
 import com.aegisguard.AegisGuard;
 import com.aegisguard.data.PlotStore;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Tameable;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -22,6 +18,7 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.projectiles.ProjectileSource;
 
 /**
  * ProtectionManager (AegisGuard)
@@ -80,7 +77,7 @@ public class ProtectionManager implements Listener {
         PlotStore.Plot plot = plugin.store().getPlotAt(block.getLocation());
         if (plot == null) return;
 
-        // Container access is protected for non-trusted when flag active
+        // Container access is protected for non-trusted when flag active (or safe_zone)
         if (!canBuild(p, plot) && isContainer(block.getType()) && enabled(plot, "containers")) {
             e.setCancelled(true);
             p.sendMessage(plugin.msg().get("cannot_interact"));
@@ -95,7 +92,9 @@ public class ProtectionManager implements Listener {
     @EventHandler
     public void onPvP(EntityDamageByEntityEvent e) {
         if (!(e.getEntity() instanceof Player victim)) return;
-        if (!(e.getDamager() instanceof Player attacker)) return;
+
+        Player attacker = resolveAttacker(e.getDamager());
+        if (attacker == null) return;
 
         PlotStore.Plot plot = plugin.store().getPlotAt(victim.getLocation());
         if (plot == null) return;
@@ -109,32 +108,40 @@ public class ProtectionManager implements Listener {
 
     @EventHandler
     public void onPetDamage(EntityDamageByEntityEvent e) {
-        if (!(e.getDamager() instanceof Player attacker)) return;
         if (!(e.getEntity() instanceof Tameable pet)) return;
+
+        Player attacker = resolveAttacker(e.getDamager());
+        if (attacker == null) return;
 
         PlotStore.Plot plot = plugin.store().getPlotAt(e.getEntity().getLocation());
         if (plot == null) return;
 
         if (enabled(plot, "pets")) {
             e.setCancelled(true);
-            attacker.sendMessage(ChatColor.RED + "❌ You cannot hurt pets here!");
+            attacker.sendMessage(plugin.msg().get("cannot_interact")); // reuse localized denial
             playEffect("pets", "deny", attacker, pet.getLocation());
         }
     }
 
     @EventHandler
     public void onEntityInteract(PlayerInteractEntityEvent e) {
-        if (!(e.getRightClicked() instanceof ArmorStand stand)) return;
-        Player p = e.getPlayer();
+        Entity clicked = e.getRightClicked();
+        if (!(clicked instanceof ArmorStand
+                || clicked instanceof ItemFrame
+                || clicked instanceof GlowItemFrame
+                || clicked instanceof Painting)) {
+            return;
+        }
 
-        PlotStore.Plot plot = plugin.store().getPlotAt(stand.getLocation());
+        Player p = e.getPlayer();
+        PlotStore.Plot plot = plugin.store().getPlotAt(clicked.getLocation());
         if (plot == null) return;
 
         // Protect decorative entities for non-trusted
         if (!canBuild(p, plot) && enabled(plot, "entities")) {
             e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "❌ You cannot modify entities here!");
-            playEffect("entities", "deny", p, stand.getLocation());
+            p.sendMessage(plugin.msg().get("cannot_interact"));
+            playEffect("entities", "deny", p, clicked.getLocation());
         }
     }
 
@@ -177,7 +184,7 @@ public class ProtectionManager implements Listener {
 
         if (enabled(plot, "farm")) {
             e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "❌ Crops are protected here!");
+            p.sendMessage(plugin.msg().get("cannot_interact")); // localized, simple denial
             playEffect("farm", "deny", p, e.getClickedBlock().getLocation());
         }
     }
@@ -189,7 +196,7 @@ public class ProtectionManager implements Listener {
     private void toggleFlag(Player player, String flag) {
         PlotStore.Plot plot = plugin.store().getPlotAt(player.getLocation());
         if (plot == null) {
-            player.sendMessage(ChatColor.RED + "❌ You are not standing in your claim!");
+            player.sendMessage(plugin.msg().get("no_plot_here"));
             playEffect(flag, "fail", player, player.getLocation());
             return;
         }
@@ -198,8 +205,7 @@ public class ProtectionManager implements Listener {
         plot.setFlag(flag, !current);
         plugin.store().flushSync();
 
-        String status = !current ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF";
-        player.sendMessage(ChatColor.YELLOW + "⚙ " + flag.toUpperCase() + " protection is now " + status);
+        // Feedback is handled by GUI using localized labels; keep chat minimal here if desired.
         playEffect(flag, "success", player, player.getLocation());
     }
 
@@ -245,10 +251,25 @@ public class ProtectionManager implements Listener {
         return plot != null && enabled(plot, flag);
     }
 
+    private Player resolveAttacker(Entity damager) {
+        if (damager instanceof Player dp) return dp;
+        if (damager instanceof Projectile proj) {
+            ProjectileSource src = proj.getShooter();
+            if (src instanceof Player sp) return sp;
+        }
+        return null;
+        }
+
     private boolean isContainer(Material type) {
+        // Cover common inventories + all colored shulker boxes
+        if (type == Material.SHULKER_BOX || type.name().endsWith("_SHULKER_BOX")) return true;
         return switch (type) {
-            case CHEST, TRAPPED_CHEST, BARREL, FURNACE, BLAST_FURNACE,
-                 SMOKER, HOPPER, DROPPER, DISPENSER, SHULKER_BOX -> true;
+            case CHEST, TRAPPED_CHEST, BARREL,
+                 ENDER_CHEST,
+                 FURNACE, BLAST_FURNACE, SMOKER,
+                 HOPPER, DROPPER, DISPENSER,
+                 BREWING_STAND,
+                 CHISELED_BOOKSHELF -> true;
             default -> false;
         };
     }
@@ -268,7 +289,8 @@ public class ProtectionManager implements Listener {
             Sound sound = Sound.valueOf(soundKey);
             Particle particle = Particle.valueOf(particleKey);
             p.playSound(loc, sound, 1f, 1f);
-            loc.getWorld().spawnParticle(particle, loc.clone().add(0.5, 1, 0.5), 10, 0.3, 0.3, 0.3, 0.05);
+            loc.getWorld().spawnParticle(particle, loc.clone().add(0.5, 1, 0.5),
+                    10, 0.3, 0.3, 0.3, 0.05);
         } catch (IllegalArgumentException ignored) {
             // invalid sound/particle fallback
         }
