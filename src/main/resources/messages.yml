@@ -1,143 +1,191 @@
 # ======================================
-# AegisGuard v1.0 - Messages
+# AegisGuard v1.0 - Messages (Fully localized)
 # ======================================
 # Multilingual Tone System:
-#   Players choose their preferred tone in Settings:
+#   Players may choose their preferred "tone of English" in Settings:
 #     - old_english (Default)
 #     - hybrid_english
 #     - modern_english
-#   Choices are per-player and update instantly.
+#   Choices are per-player and update instantly — no reload needed.
 # ======================================
 
 prefix: "&8[&bAegisGuard&8]&r "
 
 language_styles:
-  default: "old_english"     # server default style (players can override in-game)
+  default: "old_english"
   available:
     - old_english
     - hybrid_english
     - modern_english
 
 # ======================================
+# GUI Texts Shared Across All Styles
+# ======================================
+
+language_style_title: "Language Style: {STYLE}"
+
+language_style_lore:
+  - "&7Switch the tone of AegisGuard’s speech."
+  - "&8Choose between ancient and modern tongues."
+  - "&7Available tones:"
+  - "&f • &dOld English &8(Thou hast...)"
+  - "&f • &eHybrid English &8(Thou hast / You have...)"
+  - "&f • &aModern English &8(You have...)"
+  - "&eClick to cycle instantly."
+
+button_back: "&eBack"
+button_exit: "&cExit"
+
+back_lore:
+  - "&7Return to the Guardian Codex"
+
+exit_lore:
+  - "&7Close the Codex and return to your realm"
+
+# ======================================
 # OLD ENGLISH STYLE (Default)
 # ======================================
 old_english:
-  # --- General / Commands ---
+  # General & usage
   no_perm: "&cThou hast not the authority for such an act."
   players_only: "&cOnly mortals of flesh may wield this command."
   usage_main: "&eSpeak thus: /aegis <wand|menu|claim|unclaim|help>"
 
-  # --- Core feedback ---
+  # Sounds (global toggle feedback)
+  sound_global_enabled: "&a✔ The realm again resoundeth with Aegis’s voice."
+  sound_global_disabled: "&c✖ Aegis’s voice is hushed for all."
+
+  # Scepter & selection
   wand_given: "&a⚡ Behold! The Aegis Scepter is bestowed upon thee."
   corner1_set: "&a⚡ Thy first boundary is marked at &e{X}, {Z}."
   corner2_set: "&b⚡ Thy second boundary is set at &e{X}, {Z}."
   must_select: "&c❌ Thou must select two sacred points with thine Scepter."
-  selection_same_world: "&eMark both points within the selfsame realm as thy feet."
-  max_claims_reached: "&cThy ledger is full; thou hast {AMOUNT} claims already."
-  min_size_fail: "&cEach side must be at least {MIN} blocks."
-  max_area_fail: "&cThat tract ({AREA}) exceedeth the max of {MAX}."
-  overlap_fail: "&cThy selection doth overlap another’s claim."
-  plot_created: "&a✔ Verily, thy land is now shielded under Aegis Guard (&7{AREA}&a blocks)."
-  plot_unclaimed: "&e⚠ Thy claim hath been released unto the wilds."
 
-  # --- Protection messages ---
+  # Claim limits & economy
+  max_claims_reached: "&c❌ Thou canst hold but {AMOUNT} dominion(s)."
+  need_vault: "&c❌ Thy coffers hold less than &e${AMOUNT}&c gold."
+  cost_deducted: "&e💰 Tribute of &6${AMOUNT}&e hath been rendered."
+  items_deducted: "&e💰 Tribute of &6{AMOUNT} {ITEM}&e hath been rendered."
+  vault_refund: "&e💰 Recompense of &6${AMOUNT}&e ({PERCENT}%) hath been returned to thee."
+  item_refund: "&e💰 Recompense of &6{AMOUNT} {ITEM}&e ({PERCENT}%) bestowed."
+
+  # Claim lifecycle
+  plot_created: "&a✔ Verily, thy land is now shielded under Aegis Guard."
+  plot_unclaimed: "&e⚠ Thy claim hath been released unto the wilds."
+  no_plot_here: "&c❌ Thou standest upon no claim of thine."
+
+  # Protection denials
   cannot_break: "&c❌ Nay! These stones are guarded by divine decree."
   cannot_place: "&c❌ Thou mayest not place objects upon consecrated soil."
   cannot_interact: "&c❌ These relics are not for thine hand to touch."
   cannot_attack: "&c❌ Violence is forbidden under Aegis’s watchful gaze."
 
-  # --- Economy (Vault / Items) ---
-  need_vault: "&c❌ Thy coffers hold less than &e{AMOUNT}&c gold."
-  cost_deducted: "&e💰 Tribute of &6{AMOUNT}&e hath been rendered."
-  vault_refund: "&e💰 Recompense of &6{AMOUNT}&e ({PERCENT}%) hath been returned to thee."
-  need_items: "&c❌ Thou requirest &e{AMOUNT}× {ITEM}&c to bind this land."
-  items_deducted: "&7Consumed &f{AMOUNT}× {ITEM}&7."
-  item_refund: "&aReturned &f{AMOUNT}× {ITEM}&a ({PERCENT}%)."
+  # Menu & buttons
+  menu_title: "&b⚔ The Guardian Codex ⚔"
+  settings_menu_title: "&9⚙ Thine Settings"
+  button_claim_land: "&a🛡 Lay Claim to Land"
+  button_trusted_players: "&eTrusted Companions"
+  button_settings: "&9⚙ Configure Thine Protections"
+  button_info: "&6📜 Codex of Knowledge"
+  info_message: "&7Seek wisdom within the Codex and protect thy holdings."
+  claim_land_lore:
+    - "&7Bind a region to thy will."
+    - "&7Select two corners with the Scepter."
+  trusted_players_lore:
+    - "&7Name companions thou trusteth."
+  settings_lore:
+    - "&7Change wards and preferences here."
 
-  # --- Sounds (personal & global) ---
+  # Sounds buttons & lore
   button_sounds_on: "&a🔊 Sounds: Awake"
   button_sounds_off: "&c🔇 Sounds: Silent"
   button_sounds_disabled_global: "&7🔇 Sounds: Bound by Divine Silence"
-  sounds_toggle_lore: ["&7Toggle the voice of Aegis for thyself."]
-  sounds_toggle_global_disabled_lore: ["&7Bound by divine silence (server setting)."]
-  sounds_disabled_global_msg: "&eThe realm is in silence; thy sounds are bound."
-  sound_global_enabled: "&aThe realm’s echoes are restored."
-  sound_global_disabled: "&eThe realm entereth a hush."
+  sounds_toggle_lore:
+    - "&7Toggle Aegis’s whispers for thyself."
+  sounds_toggle_global_disabled_lore:
+    - "&7An edict hath hushed all sound."
 
-  # --- Menus / Titles ---
-  menu_title: "&b⚔ The Guardian Codex ⚔"
-  settings_menu_title: "&9⚙ Thine Settings"
-  trusted_menu_title: "&b👥 Trusted Companions"
-  add_trusted_title: "&a➕ Add a Trusted"
-  remove_trusted_title: "&c➖ Remove a Trusted"
-  admin_menu_title: "&9⚙ High Guardian’s Panel"
-  expansion_admin_title: "🛡 AegisGuard — Expansion Requests"
+  # Individual flags (buttons + lore)
+  button_pvp_on: "&a⚔ PvP Ward: Awake"
+  button_pvp_off: "&c⚔ PvP Ward: Silent"
+  pvp_toggle_lore:
+    - "&7Forbiddeth blade upon blade in thy claim."
 
-  # --- Player GUI buttons/lore ---
-  button_claim_land: "&a🛡 Lay Claim to Land"
-  claim_land_lore: ["&7Select two corners with the Scepter, then confirm."]
-  button_trusted_players: "&eTrusted Companions"
-  trusted_players_lore: ["&7Grant or revoke trusted companions."]
-  button_settings: "&9⚙ Configure Thine Protections"
-  settings_lore: ["&7Tune PvP, containers, mobs, pets, entities, & farms."]
-  button_info: "&6📜 Codex of Knowledge"
-  info_lore: ["&7Read about AegisGuard’s features and commands."]
-  button_back: "&eBack"
-  back_lore: ["&7Return to the Guardian Codex"]
-  button_exit: "&cExit"
-  exit_lore: ["&7Close the Codex and return to thy realm"]
+  button_containers_on: "&a📦 Relics Ward: Awake"
+  button_containers_off: "&c📦 Relics Ward: Silent"
+  container_toggle_lore:
+    - "&7Bars prying hands from chests & devices."
 
-  # --- Settings toggles ---
-  button_pvp_on: "&a⚔ PvP: Awake"
-  button_pvp_off: "&c⚔ PvP: Forbidden"
-  pvp_toggle_lore: ["&7Allow or forbid combat within thy claim."]
-  button_containers_on: "&a📦 Containers: Guarded"
-  button_containers_off: "&e📦 Containers: Unguarded"
-  container_toggle_lore: ["&7Gate the use of chests, barrels, hoppers, & relics."]
-  button_mobs_on: "&a👾 Mobs: Restrained"
-  button_mobs_off: "&e👾 Mobs: Unrestrained"
-  mob_toggle_lore: ["&7Disallow monster griefing or targeting herein."]
-  button_pets_on: "&a🐾 Pets: Protected"
-  button_pets_off: "&e🐾 Pets: Unprotected"
-  pet_toggle_lore: ["&7Safeguard tamed beasts from harm."]
-  button_entity_on: "&a🏺 Entities: Shielded"
-  button_entity_off: "&e🏺 Entities: Unshielded"
-  entity_toggle_lore: ["&7Guard armor stands, item frames, and displays."]
-  button_farm_on: "&a🌾 Farms: Tended"
-  button_farm_off: "&e🌾 Farms: Untended"
-  farm_toggle_lore: ["&7Prevent trampling and crop mischief."]
+  button_mobs_on: "&a🧟 Monster Ward: Awake"
+  button_mobs_off: "&c🧟 Monster Ward: Silent"
+  mob_toggle_lore:
+    - "&7Still the claws of hostile beasts."
 
-  # --- Trusted GUI ---
-  trusted_menu_lore: ["&7Click a visage to untrust."]
-  add_trusted_lore: ["&7Click to grant trust unto this player."]
-  remove_trusted_lore: ["&7Click to revoke trust from this player."]
+  button_pets_on: "&a🐾 Beast Ward: Awake"
+  button_pets_off: "&c🐾 Beast Ward: Silent"
+  pet_toggle_lore:
+    - "&7Shield tamed beasts from harm."
+
+  button_entity_on: "&a🗿 Entity Ward: Awake"
+  button_entity_off: "&c🗿 Entity Ward: Silent"
+  entity_toggle_lore:
+    - "&7Guard armor stands, frames, and relics."
+
+  button_farm_on: "&a🌾 Harvest Ward: Awake"
+  button_farm_off: "&c🌾 Harvest Ward: Silent"
+  farm_toggle_lore:
+    - "&7Spare thy crops from trampling."
+
+  # Safe Zone (master)
+  button_safe_on: "&a🛡 Sanctuary: Awakened"
+  button_safe_off: "&c🛡 Sanctuary: Slumbering"
+  safe_toggle_lore:
+    - "&7A master ward that enforceth all protections."
+    - "&7(PvP, mobs, containers, entities, pets, crops)"
+  safe_zone_enabled: "&a🛡 Sanctuary is declared. All within is protected."
+  safe_zone_disabled: "&c⚠ Sanctuary withdrawn. Individual wards now apply."
+
+  # Generic toggle feedback (used if needed)
+  flag_toggled: "&e⚙ {FLAG} ward is now &f{STATUS}&e."
+
+  # Trusted GUI basics (short set; expand as needed)
+  trusted_menu_title: "&eTrusted Companions"
+  add_trusted_title: "&aAdd a Companion"
+  remove_trusted_title: "&cRemove a Companion"
+  trusted_menu_lore:
+    - "&7Click a head to unbind trust."
+  add_trusted_lore:
+    - "&7Click a head to grant trust."
+  remove_trusted_lore:
+    - "&7Click a head to remove trust."
   button_add_trusted: "&aAdd Trusted"
   button_remove_trusted: "&cRemove Trusted"
-  button_roles: "&eRoles (Soon)"
-  roles_lore: ["&7Role-based boons shall arrive anon."]
-  info_trusted_lore: ["&7Trusted may build and aid within thy bounds."]
-  trusted_added: "&a✔ {PLAYER} hath been named thy trusted companion."
-  trusted_removed: "&e✖ {PLAYER} hath been stricken from thy circle."
-  trusted_self: "&c❌ Thou canst not grant trust unto thyself."
-  trusted_already: "&e⚠ {PLAYER} is already sworn to thee."
-  not_trusted: "&c❌ {PLAYER} is not among thy sworn allies."
+  button_roles: "&bRoles (Soon)"
+  roles_lore:
+    - "&7Decorative for now."
+  info_trusted_lore:
+    - "&7Trusted may build and interact in thy claim."
 
-  # --- Admin GUI ---
-  button_admin_auto_remove: "&c⛔ Auto-Remove Banned"
-  admin_auto_remove_lore: ["&7Sweep the plots of the banished."]
-  admin_auto_remove_enabled: "&aAuto-remove enabled."
-  admin_auto_remove_disabled: "&eAuto-remove disabled."
-  button_admin_bypass_limit: "&e📏 Bypass Claim Limit"
-  admin_bypass_limit_lore: ["&7Let wardens ignore the common limits."]
-  admin_bypass_enabled: "&aBypass enabled."
-  admin_bypass_disabled: "&eBypass disabled."
-  button_admin_broadcast: "&b📣 Broadcast Admin Actions"
-  admin_broadcast_lore: ["&7Proclaim thy decrees to the realm."]
-  admin_broadcast_enabled: "&aBroadcasts enabled."
-  admin_broadcast_disabled: "&eBroadcasts disabled."
-  admin_removed_banned: "&eRemoved plots of banned player: &f{PLAYER}&e."
+  # Admin GUI bits (kept concise)
+  admin_menu_title: "&c⚙ High Guardian Tools"
+  button_admin_auto_remove: "&6Auto-Purge Banned"
+  admin_auto_remove_lore:
+    - "&7Remove lands of the banished."
+  button_admin_bypass_limit: "&dBypass Claim Limit"
+  admin_bypass_limit_lore:
+    - "&7Ops may exceed mortal bounds."
+  button_admin_broadcast: "&bBroadcast Admin Deeds"
+  admin_broadcast_lore:
+    - "&7Let the realm hear of judgments."
+  admin_auto_remove_enabled: "&a✔ Auto-purge awaken’d."
+  admin_auto_remove_disabled: "&c✖ Auto-purge slumbereth."
+  admin_bypass_enabled: "&a✔ Bypass is granted unto ops."
+  admin_bypass_disabled: "&c✖ Bypass revoked."
+  admin_broadcast_enabled: "&a✔ Proclamations shall be heard."
+  admin_broadcast_disabled: "&c✖ Proclamations silenced."
+  admin_removed_banned: "&ePurged plots of the banished: {PLAYER}"
 
-  # --- Help ---
+  # Help
   help_header: "&b⚔ &nThe Guardian’s Scroll of Instruction&r"
   help_lines:
     - "&7--------------------------------------"
@@ -156,114 +204,134 @@ hybrid_english:
   players_only: "&cOnly living adventurers may wield this."
   usage_main: "&eCommand thus: /aegis <wand|menu|claim|unclaim|help>"
 
+  sound_global_enabled: "&a✔ The realm hears Aegis once more."
+  sound_global_disabled: "&c✖ Aegis is silent for all."
+
   wand_given: "&a⚡ The Aegis Scepter hath been granted."
   corner1_set: "&a⚡ First corner set at &e{X}, {Z}."
   corner2_set: "&b⚡ Second corner set at &e{X}, {Z}."
-  must_select: "&c❌ Select two corners with the Scepter first."
-  selection_same_world: "&eMark both points within the same world as thou stand’st."
-  max_claims_reached: "&cThy limit is reached: {AMOUNT} claims."
-  min_size_fail: "&cEach side must be at least {MIN} blocks."
-  max_area_fail: "&cThat area ({AREA}) exceedeth the max of {MAX}."
-  overlap_fail: "&cThat selection overlaps another claim."
-  plot_created: "&a✔ Thy claim is secured by the Aegis (&7{AREA}&a blocks)."
+  must_select: "&c❌ Thou must select two points with the Scepter."
+  max_claims_reached: "&c❌ Thou canst hold only {AMOUNT} claim(s)."
+
+  need_vault: "&c❌ Thou lacketh &e${AMOUNT}&c in gold."
+  cost_deducted: "&e💰 Tribute of &6${AMOUNT}&e rendered."
+  items_deducted: "&e💰 Tribute of &6{AMOUNT} {ITEM}&e rendered."
+  vault_refund: "&e💰 Refund of &6${AMOUNT}&e ({PERCENT}%) returned."
+  item_refund: "&e💰 Refund of &6{AMOUNT} {ITEM}&e ({PERCENT}%)."
+
+  plot_created: "&a✔ Thy claim is secured by the Aegis."
   plot_unclaimed: "&e⚠ Thy claim is now unbound."
+  no_plot_here: "&c❌ Thou standest on no claim of thine."
 
   cannot_break: "&c❌ Thou may not tamper with protected ground."
   cannot_place: "&c❌ This land refuseth thy hand."
-  cannot_interact: "&c❌ Thou may not meddle with these containers."
+  cannot_interact: "&c❌ Thou may not touch these relics."
   cannot_attack: "&c❌ PvP is forbidden in this claim."
 
-  need_vault: "&c❌ Thou lackest &e{AMOUNT}&c."
-  cost_deducted: "&e💰 Tribute paid: &6{AMOUNT}&e."
-  vault_refund: "&e💰 Refund: &6{AMOUNT}&e (&6{PERCENT}%&e)."
-  need_items: "&c❌ Thou requirest &e{AMOUNT}× {ITEM}&c."
-  items_deducted: "&7Consumed &f{AMOUNT}× {ITEM}&7."
-  item_refund: "&aReturned &f{AMOUNT}× {ITEM}&a (&f{PERCENT}%&a)."
+  menu_title: "&b⚔ The Guardian Codex ⚔"
+  settings_menu_title: "&9⚙ Thy Settings"
+  button_claim_land: "&a🛡 Claim Land"
+  button_trusted_players: "&eTrusted Companions"
+  button_settings: "&9⚙ Configure Protections"
+  button_info: "&6📜 Codex of Knowledge"
+  info_message: "&7Study the Codex to learn and secure thy holdings."
+  claim_land_lore:
+    - "&7Bind a region using two corners."
+  trusted_players_lore:
+    - "&7Grant or revoke trusted companions."
+  settings_lore:
+    - "&7Adjust wards and preferences."
 
   button_sounds_on: "&a🔊 Sounds: On"
   button_sounds_off: "&c🔇 Sounds: Off"
-  button_sounds_disabled_global: "&7🔇 Sounds: Server Off"
-  sounds_toggle_lore: ["&7Toggle Aegis sounds for thyself."]
-  sounds_toggle_global_disabled_lore: ["&7Server mute is active."]
-  sounds_disabled_global_msg: "&eSounds are disabled by the server."
-  sound_global_enabled: "&aServer sounds enabled."
-  sound_global_disabled: "&eServer sounds disabled."
-
-  menu_title: "&b⚔ Guardian Codex"
-  settings_menu_title: "&9⚙ Settings"
-  trusted_menu_title: "&b👥 Trusted"
-  add_trusted_title: "&a➕ Add Trusted"
-  remove_trusted_title: "&c➖ Remove Trusted"
-  admin_menu_title: "&9⚙ Admin Panel"
-  expansion_admin_title: "🛡 AegisGuard — Expansion Requests"
-
-  button_claim_land: "&a🛡 Claim Land"
-  claim_land_lore: ["&7Select two corners, then confirm."]
-  button_trusted_players: "&eTrusted Players"
-  trusted_players_lore: ["&7Grant or revoke build access."]
-  button_settings: "&9⚙ Configure Protections"
-  settings_lore: ["&7Tune PvP, containers, mobs, pets, entities, farms."]
-  button_info: "&6📜 Info"
-  info_lore: ["&7Learn about AegisGuard."]
-  button_back: "&eBack"
-  back_lore: ["&7Return to the Codex"]
-  button_exit: "&cExit"
-  exit_lore: ["&7Close the Codex"]
+  button_sounds_disabled_global: "&7🔇 Sounds: Globally Disabled"
+  sounds_toggle_lore:
+    - "&7Toggle Aegis whispers for thyself."
+  sounds_toggle_global_disabled_lore:
+    - "&7A decree hath silenced all sound."
 
   button_pvp_on: "&a⚔ PvP: On"
   button_pvp_off: "&c⚔ PvP: Off"
-  pvp_toggle_lore: ["&7Allow or disallow combat."]
-  button_containers_on: "&a📦 Containers: On"
-  button_containers_off: "&e📦 Containers: Off"
-  container_toggle_lore: ["&7Chest/barrel/hopper access."]
-  button_mobs_on: "&a👾 Mobs: On"
-  button_mobs_off: "&e👾 Mobs: Off"
-  mob_toggle_lore: ["&7Stop mob grief/targeting."]
-  button_pets_on: "&a🐾 Pets: On"
-  button_pets_off: "&e🐾 Pets: Off"
-  pet_toggle_lore: ["&7Protect tamed animals."]
-  button_entity_on: "&a🏺 Entities: On"
-  button_entity_off: "&e🏺 Entities: Off"
-  entity_toggle_lore: ["&7Guard frames, stands, displays."]
-  button_farm_on: "&a🌾 Farms: On"
-  button_farm_off: "&e🌾 Farms: Off"
-  farm_toggle_lore: ["&7Prevent trampling/crop grief."]
+  pvp_toggle_lore:
+    - "&7Disallow combat in thy claim."
 
-  trusted_menu_lore: ["&7Click a head to untrust."]
-  add_trusted_lore: ["&7Click to add trusted."]
-  remove_trusted_lore: ["&7Click to remove trusted."]
+  button_containers_on: "&a📦 Containers: On"
+  button_containers_off: "&c📦 Containers: Off"
+  container_toggle_lore:
+    - "&7Protect chests & mechanisms."
+
+  button_mobs_on: "&a🧟 Mobs: On"
+  button_mobs_off: "&c🧟 Mobs: Off"
+  mob_toggle_lore:
+    - "&7Deter hostile spawns & targeting."
+
+  button_pets_on: "&a🐾 Pets: On"
+  button_pets_off: "&c🐾 Pets: Off"
+  pet_toggle_lore:
+    - "&7Keep tamed beasts safe."
+
+  button_entity_on: "&a🗿 Entities: On"
+  button_entity_off: "&c🗿 Entities: Off"
+  entity_toggle_lore:
+    - "&7Guard stands, frames, placed items."
+
+  button_farm_on: "&a🌾 Crops: On"
+  button_farm_off: "&c🌾 Crops: Off"
+  farm_toggle_lore:
+    - "&7Prevent farmland trampling."
+
+  button_safe_on: "&a🛡 Safe Zone: Enabled"
+  button_safe_off: "&c🛡 Safe Zone: Disabled"
+  safe_toggle_lore:
+    - "&7Master switch: enable every protection."
+    - "&7(PvP, mobs, containers, entities, pets, crops)"
+  safe_zone_enabled: "&a🛡 Safe Zone is enabled. All is protected."
+  safe_zone_disabled: "&c⚠ Safe Zone disabled. Individual protections apply."
+
+  flag_toggled: "&e⚙ {FLAG} protection is now &f{STATUS}&e."
+
+  trusted_menu_title: "&eTrusted Companions"
+  add_trusted_title: "&aAdd a Companion"
+  remove_trusted_title: "&cRemove a Companion"
+  trusted_menu_lore:
+    - "&7Click a head to remove trust."
+  add_trusted_lore:
+    - "&7Click a head to add trust."
+  remove_trusted_lore:
+    - "&7Click a head to remove trust."
   button_add_trusted: "&aAdd Trusted"
   button_remove_trusted: "&cRemove Trusted"
-  button_roles: "&eRoles (Soon)"
-  roles_lore: ["&7Role-based permissions coming."]
-  info_trusted_lore: ["&7Trusted may build within thy claim."]
-  trusted_added: "&a✔ {PLAYER} is now trusted."
-  trusted_removed: "&e✖ {PLAYER} removed from trusted."
-  trusted_self: "&c❌ Thou canst not trust thyself."
-  trusted_already: "&e⚠ {PLAYER} is already trusted."
-  not_trusted: "&c❌ {PLAYER} is not trusted."
+  button_roles: "&bRoles (Soon)"
+  roles_lore:
+    - "&7Decorative for now."
+  info_trusted_lore:
+    - "&7Trusted may build and interact within thy claim."
 
-  button_admin_auto_remove: "&c⛔ Auto-Remove Banned"
-  admin_auto_remove_lore: ["&7Remove plots of banned players."]
-  admin_auto_remove_enabled: "&aAuto-remove enabled."
-  admin_auto_remove_disabled: "&eAuto-remove disabled."
-  button_admin_bypass_limit: "&e📏 Bypass Claim Limit"
-  admin_bypass_limit_lore: ["&7Admins ignore claim limits."]
-  admin_bypass_enabled: "&aBypass enabled."
-  admin_bypass_disabled: "&eBypass disabled."
-  button_admin_broadcast: "&b📣 Broadcast Admin Actions"
-  admin_broadcast_lore: ["&7Announce admin actions."]
-  admin_broadcast_enabled: "&aBroadcasts enabled."
-  admin_broadcast_disabled: "&eBroadcasts disabled."
-  admin_removed_banned: "&eRemoved plots of banned player: &f{PLAYER}&e."
+  admin_menu_title: "&c⚙ High Guardian Tools"
+  button_admin_auto_remove: "&6Auto-Remove Banned"
+  admin_auto_remove_lore:
+    - "&7Purge lands of banned players."
+  button_admin_bypass_limit: "&dBypass Claim Limit"
+  admin_bypass_limit_lore:
+    - "&7Allow ops to exceed limits."
+  button_admin_broadcast: "&bBroadcast Admin Actions"
+  admin_broadcast_lore:
+    - "&7Announce administrative deeds."
+  admin_auto_remove_enabled: "&a✔ Auto-remove enabled."
+  admin_auto_remove_disabled: "&c✖ Auto-remove disabled."
+  admin_bypass_enabled: "&a✔ Bypass enabled for ops."
+  admin_bypass_disabled: "&c✖ Bypass disabled."
+  admin_broadcast_enabled: "&a✔ Broadcasts enabled."
+  admin_broadcast_disabled: "&c✖ Broadcasts disabled."
+  admin_removed_banned: "&eRemoved plots of banned player: {PLAYER}"
 
-  help_header: "&b⚔ Guardian’s Guide"
+  help_header: "&b⚔ &nGuardian’s Guide&r"
   help_lines:
     - "&e/aegis wand &7- Receive the Scepter"
-    - "&e/aegis menu &7- Open the Codex"
-    - "&e/aegis claim &7- Claim land"
-    - "&e/aegis unclaim &7- Unclaim land"
-    - "&e/aegis help &7- Show help"
+    - "&e/aegis menu &7- Open the Guardian Codex"
+    - "&e/aegis claim &7- Claim thy chosen land"
+    - "&e/aegis unclaim &7- Release thy claim"
+    - "&e/aegis help &7- Learn the Codex commands"
 
 # ======================================
 # MODERN ENGLISH STYLE
@@ -273,106 +341,126 @@ modern_english:
   players_only: "&cOnly players can use this command."
   usage_main: "&eUsage: /aegis <wand|menu|claim|unclaim|help>"
 
+  sound_global_enabled: "&a✔ Global sounds are now ON."
+  sound_global_disabled: "&c✖ Global sounds are now OFF."
+
   wand_given: "&a✔ You’ve received the Aegis Scepter."
-  corner1_set: "&a✔ First corner set at &e{X}, {Z}."
-  corner2_set: "&a✔ Second corner set at &e{X}, {Z}."
+  corner1_set: "&a⚡ First corner set at &e{X}, {Z}."
+  corner2_set: "&b⚡ Second corner set at &e{X}, {Z}."
   must_select: "&c❌ Select two corners with the Scepter first."
-  selection_same_world: "&eBoth corners must be in your current world."
-  max_claims_reached: "&cYou’ve reached the max claims: {AMOUNT}."
-  min_size_fail: "&cEach side must be at least {MIN} blocks."
-  max_area_fail: "&cThat area ({AREA}) exceeds the max of {MAX}."
-  overlap_fail: "&cThat selection overlaps an existing claim."
-  plot_created: "&a✔ Claim created and protected (&7{AREA}&a blocks)."
+  max_claims_reached: "&c❌ You can only have {AMOUNT} claim(s)."
+
+  need_vault: "&c❌ You need &e${AMOUNT}&c to claim."
+  cost_deducted: "&e💰 Charged &6${AMOUNT}&e for claiming."
+  items_deducted: "&e💰 Consumed &6{AMOUNT} {ITEM}&e for claiming."
+  vault_refund: "&e💰 Refunded &6${AMOUNT}&e ({PERCENT}%)."
+  item_refund: "&e💰 Refunded &6{AMOUNT} {ITEM}&e ({PERCENT}%)."
+
+  plot_created: "&a✔ Your claim has been created and protected."
   plot_unclaimed: "&e⚠ Your land has been unclaimed."
+  no_plot_here: "&c❌ You’re not standing in your own claim."
 
   cannot_break: "&c❌ You can’t break blocks here."
   cannot_place: "&c❌ You can’t build here."
-  cannot_interact: "&c❌ You can’t interact with containers here."
+  cannot_interact: "&c❌ You can’t interact here."
   cannot_attack: "&c❌ PvP is disabled in this claim."
-
-  need_vault: "&c❌ You need &e{AMOUNT}&c."
-  cost_deducted: "&7Charged &f{AMOUNT}&7."
-  vault_refund: "&aRefunded &f{AMOUNT}&a ({PERCENT}%)."
-  need_items: "&c❌ You need &e{AMOUNT}× {ITEM}&c."
-  items_deducted: "&7Consumed &f{AMOUNT}× {ITEM}&7."
-  item_refund: "&aReturned &f{AMOUNT}× {ITEM}&a ({PERCENT}%)."
-
-  button_sounds_on: "&a🔊 Sounds: On"
-  button_sounds_off: "&c🔇 Sounds: Off"
-  button_sounds_disabled_global: "&7🔇 Sounds: Server Disabled"
-  sounds_toggle_lore: ["&7Toggle Aegis sounds for yourself."]
-  sounds_toggle_global_disabled_lore: ["&7Server mute is active."]
-  sounds_disabled_global_msg: "&eSounds are disabled by the server."
-  sound_global_enabled: "&aServer sounds enabled."
-  sound_global_disabled: "&eServer sounds disabled."
 
   menu_title: "&b⚔ Guardian Codex"
   settings_menu_title: "&9⚙ Settings"
-  trusted_menu_title: "&b👥 Trusted Players"
-  add_trusted_title: "&a➕ Add Trusted"
-  remove_trusted_title: "&c➖ Remove Trusted"
-  admin_menu_title: "&9⚙ Admin Panel"
-  expansion_admin_title: "🛡 AegisGuard — Expansion Requests"
-
   button_claim_land: "&a🛡 Claim Land"
-  claim_land_lore: ["&7Select two corners, then confirm."]
   button_trusted_players: "&eTrusted Players"
-  trusted_players_lore: ["&7Grant or revoke build access."]
-  button_settings: "&9⚙ Configure Protections"
-  settings_lore: ["&7Tune PvP, containers, mobs, pets, entities, farms."]
+  button_settings: "&9⚙ Protection Settings"
   button_info: "&6📜 Info"
-  info_lore: ["&7Learn about AegisGuard features."]
-  button_back: "&eBack"
-  back_lore: ["&7Return to the menu"]
-  button_exit: "&cExit"
-  exit_lore: ["&7Close the menu"]
+  info_message: "&7Open the Codex to manage protections and learn commands."
+  claim_land_lore:
+    - "&7Select two corners and claim."
+  trusted_players_lore:
+    - "&7Add or remove trusted players."
+  settings_lore:
+    - "&7Toggle protections and preferences."
+
+  button_sounds_on: "&a🔊 Sounds: On"
+  button_sounds_off: "&c🔇 Sounds: Off"
+  button_sounds_disabled_global: "&7🔇 Sounds: Globally Disabled"
+  sounds_toggle_lore:
+    - "&7Toggle Aegis sounds for yourself."
+  sounds_toggle_global_disabled_lore:
+    - "&7Server has disabled all sounds."
 
   button_pvp_on: "&a⚔ PvP: On"
   button_pvp_off: "&c⚔ PvP: Off"
-  pvp_toggle_lore: ["&7Allow or disallow combat in your claim."]
-  button_containers_on: "&a📦 Containers: On"
-  button_containers_off: "&e📦 Containers: Off"
-  container_toggle_lore: ["&7Chest/barrel/hopper access."]
-  button_mobs_on: "&a👾 Mobs: On"
-  button_mobs_off: "&e👾 Mobs: Off"
-  mob_toggle_lore: ["&7Stop mob griefing/targeting."]
-  button_pets_on: "&a🐾 Pets: On"
-  button_pets_off: "&e🐾 Pets: Off"
-  pet_toggle_lore: ["&7Protect tamed animals."]
-  button_entity_on: "&a🏺 Entities: On"
-  button_entity_off: "&e🏺 Entities: Off"
-  entity_toggle_lore: ["&7Protect item frames/armor stands/displays."]
-  button_farm_on: "&a🌾 Farms: On"
-  button_farm_off: "&e🌾 Farms: Off"
-  farm_toggle_lore: ["&7Prevent trampling and crop grief."]
+  pvp_toggle_lore:
+    - "&7Block PvP in this claim."
 
-  trusted_menu_lore: ["&7Click a head to remove trust."]
-  add_trusted_lore: ["&7Click to add this player."]
-  remove_trusted_lore: ["&7Click to remove this player."]
+  button_containers_on: "&a📦 Containers: On"
+  button_containers_off: "&c📦 Containers: Off"
+  container_toggle_lore:
+    - "&7Protect chests, furnaces, hoppers, etc."
+
+  button_mobs_on: "&a🧟 Mobs: On"
+  button_mobs_off: "&c🧟 Mobs: Off"
+  mob_toggle_lore:
+    - "&7Prevent hostile mob spawning/targeting."
+
+  button_pets_on: "&a🐾 Pets: On"
+  button_pets_off: "&c🐾 Pets: Off"
+  pet_toggle_lore:
+    - "&7Protect tamed pets."
+
+  button_entity_on: "&a🗿 Entities: On"
+  button_entity_off: "&c🗿 Entities: Off"
+  entity_toggle_lore:
+    - "&7Protect armor stands, item frames, etc."
+
+  button_farm_on: "&a🌾 Crops: On"
+  button_farm_off: "&c🌾 Crops: Off"
+  farm_toggle_lore:
+    - "&7Prevent crop trampling."
+
+  button_safe_on: "&a🛡 Safe Zone: ON"
+  button_safe_off: "&c🛡 Safe Zone: OFF"
+  safe_toggle_lore:
+    - "&7Master switch for all protections."
+    - "&7(PvP, mobs, containers, entities, pets, crops)"
+  safe_zone_enabled: "&a🛡 Safe Zone: ON — this claim is fully protected."
+  safe_zone_disabled: "&c⚠ Safe Zone: OFF — individual flags apply."
+
+  flag_toggled: "&e⚙ {FLAG}: &f{STATUS}"
+
+  trusted_menu_title: "&eTrusted Players"
+  add_trusted_title: "&aAdd Trusted"
+  remove_trusted_title: "&cRemove Trusted"
+  trusted_menu_lore:
+    - "&7Click a head to remove trust."
+  add_trusted_lore:
+    - "&7Click a head to add trust."
+  remove_trusted_lore:
+    - "&7Click a head to remove trust."
   button_add_trusted: "&aAdd Trusted"
   button_remove_trusted: "&cRemove Trusted"
-  button_roles: "&eRoles (Soon)"
-  roles_lore: ["&7Role-based permissions coming soon."]
-  info_trusted_lore: ["&7Trusted players can help build in your claim."]
-  trusted_added: "&a✔ {PLAYER} is now trusted."
-  trusted_removed: "&e✖ {PLAYER} removed from trusted."
-  trusted_self: "&c❌ You can’t trust yourself."
-  trusted_already: "&e⚠ {PLAYER} is already trusted."
-  not_trusted: "&c❌ {PLAYER} is not trusted."
+  button_roles: "&bRoles (Soon)"
+  roles_lore:
+    - "&7Decorative for now."
+  info_trusted_lore:
+    - "&7Trusted players can build and interact in your claim."
 
-  button_admin_auto_remove: "&c⛔ Auto-Remove Banned"
-  admin_auto_remove_lore: ["&7Remove plots owned by banned players."]
-  admin_auto_remove_enabled: "&aAuto-remove enabled."
-  admin_auto_remove_disabled: "&eAuto-remove disabled."
-  button_admin_bypass_limit: "&e📏 Bypass Claim Limit"
-  admin_bypass_limit_lore: ["&7Admins ignore claim limits."]
-  admin_bypass_enabled: "&aBypass enabled."
-  admin_bypass_disabled: "&eBypass disabled."
-  button_admin_broadcast: "&b📣 Broadcast Admin Actions"
-  admin_broadcast_lore: ["&7Announce admin actions to everyone."]
-  admin_broadcast_enabled: "&aBroadcasts enabled."
-  admin_broadcast_disabled: "&eBroadcasts disabled."
-  admin_removed_banned: "&eRemoved plots of banned player: &f{PLAYER}&e."
+  admin_menu_title: "&c⚙ Admin Tools"
+  button_admin_auto_remove: "&6Auto-Remove Banned Players"
+  admin_auto_remove_lore:
+    - "&7Automatically purge plots of banned players."
+  button_admin_bypass_limit: "&dBypass Claim Limit"
+  admin_bypass_limit_lore:
+    - "&7Let ops exceed the max claims."
+  button_admin_broadcast: "&bBroadcast Admin Actions"
+  admin_broadcast_lore:
+    - "&7Announce admin actions to staff or all."
+  admin_auto_remove_enabled: "&a✔ Auto-remove enabled."
+  admin_auto_remove_disabled: "&c✖ Auto-remove disabled."
+  admin_bypass_enabled: "&a✔ Bypass enabled for ops."
+  admin_bypass_disabled: "&c✖ Bypass disabled."
+  admin_broadcast_enabled: "&a✔ Broadcasts enabled."
+  admin_broadcast_disabled: "&c✖ Broadcasts disabled."
+  admin_removed_banned: "&eRemoved plots for banned player: {PLAYER}"
 
   help_header: "&b⚔ Guardian Codex Help"
   help_lines:
