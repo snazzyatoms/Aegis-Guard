@@ -2,7 +2,6 @@ package com.aegisguard.gui;
 
 import com.aegisguard.AegisGuard;
 import com.aegisguard.expansions.ExpansionRequestAdminGUI;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -12,6 +11,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
+/**
+ * Central router for all GUIs (now includes Expansion Admin placeholder).
+ */
 public class GUIManager {
 
     private final AegisGuard plugin;
@@ -21,7 +23,7 @@ public class GUIManager {
     private final TrustedGUI trustedGUI;
     private final SettingsGUI settingsGUI;
     private final AdminGUI adminGUI;
-    private final ExpansionRequestAdminGUI expansionAdminGUI;
+    private final ExpansionRequestAdminGUI expansionAdminGUI; // placeholder "coming soon"
 
     public GUIManager(AegisGuard plugin) {
         this.plugin = plugin;
@@ -29,7 +31,7 @@ public class GUIManager {
         this.trustedGUI = new TrustedGUI(plugin);
         this.settingsGUI = new SettingsGUI(plugin);
         this.adminGUI = new AdminGUI(plugin);
-        this.expansionAdminGUI = new ExpansionRequestAdminGUI(plugin);
+        this.expansionAdminGUI = new ExpansionRequestAdminGUI(plugin); // compiles without backend
     }
 
     // Accessors
@@ -40,72 +42,47 @@ public class GUIManager {
     public ExpansionRequestAdminGUI expansionAdmin() { return expansionAdminGUI; }
 
     /* -----------------------------
-     * Open Main Menu (Player GUI wrapper)
+     * Open Main Menu (Player GUI)
      * ----------------------------- */
-    public void openMain(Player player) {
-        playerGUI.open(player);
-    }
+    public void openMain(Player player) { playerGUI.open(player); }
 
     /* -----------------------------
-     * Handle Main Menu Clicks
+     * Route clicks by inventory title
      * ----------------------------- */
     public void handleClick(Player player, InventoryClickEvent e) {
-        ItemStack clicked = e.getCurrentItem();
-        if (clicked == null || clicked.getType().isAir()) return;
-
-        final String viewTitle = normalize(e.getView().getTitle());
-
-        // Resolve known titles once (with safe fallbacks)
-        final String tPlayer   = normalize(msg("menu_title",            "AegisGuard — Menu"));
-        final String tTrusted  = normalize(msg("trusted_menu_title",     "AegisGuard — Trusted"));
-        final String tTrustedAdd = normalize(msg("add_trusted_title",    "AegisGuard — Add Trusted"));
-        final String tTrustedRem = normalize(msg("remove_trusted_title", "AegisGuard — Remove Trusted"));
-        final String tSettings = normalize(msg("settings_menu_title",    "AegisGuard — Settings"));
-        final String tAdmin    = normalize(msg("admin_menu_title",       "AegisGuard — Admin"));
-        final String tExpAdmin = normalize(msg("expansion_admin_title",  "AegisGuard — Expansion Requests"));
-
-        boolean ours =
-            viewTitle.equals(tPlayer) ||
-            viewTitle.equals(tTrusted) ||
-            viewTitle.equals(tTrustedAdd) ||
-            viewTitle.equals(tTrustedRem) ||
-            viewTitle.equals(tSettings) ||
-            viewTitle.equals(tAdmin) ||
-            viewTitle.equals(tExpAdmin);
-
-        if (!ours) return; // don’t cancel clicks for non-Aegis inventories
-
         e.setCancelled(true);
+        if (e.getCurrentItem() == null) return;
 
-        // Route by title
-        if (viewTitle.equals(tPlayer)) {
+        String title = e.getView().getTitle();
+
+        if (title.equals(plugin.msg().get("menu_title"))) {
             playerGUI.handleClick(player, e);
-        } else if (viewTitle.equals(tTrusted) || viewTitle.equals(tTrustedAdd) || viewTitle.equals(tTrustedRem)) {
+        }
+        else if (title.equals(plugin.msg().get("trusted_menu_title"))
+              || title.equals(plugin.msg().get("add_trusted_title"))
+              || title.equals(plugin.msg().get("remove_trusted_title"))) {
             trustedGUI.handleClick(player, e);
-        } else if (viewTitle.equals(tSettings)) {
+        }
+        else if (title.equals(plugin.msg().get("settings_menu_title"))) {
             settingsGUI.handleClick(player, e);
-        } else if (viewTitle.equals(tAdmin)) {
+        }
+        else if (title.equals(plugin.msg().get("admin_menu_title"))) {
             adminGUI.handleClick(player, e);
-        } else if (viewTitle.equals(tExpAdmin)) {
-            expansionAdminGUI.handleClick(player, e);
+        }
+        else {
+            // Expansion Admin title (fallback to default if key missing)
+            String expTitle = plugin.msg().has("expansion_admin_title")
+                    ? plugin.msg().get("expansion_admin_title")
+                    : "§b🛡 AegisGuard — Expansion Admin";
+            if (title.equals(expTitle)) {
+                expansionAdminGUI.handleClick(player, e);
+            }
         }
     }
 
     /* -----------------------------
-     * Helpers
+     * Helper: Build Icon
      * ----------------------------- */
-    private String msg(String key, String fallback) {
-        // MessagesUtil.get(key) should return colored text; if missing, use fallback
-        String s = plugin.msg().get(key);
-        return (s == null || s.isEmpty()) ? fallback : s;
-    }
-
-    private static String normalize(String s) {
-        if (s == null) return "";
-        // Strip color codes and compare case-insensitively
-        return ChatColor.stripColor(s).trim().toLowerCase();
-    }
-
     public static ItemStack icon(Material mat, String name, List<String> lore) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
