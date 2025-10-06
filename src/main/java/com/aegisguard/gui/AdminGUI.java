@@ -7,14 +7,22 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
 /**
- * Placeholder Expansion Admin GUI (ships with Community v1.0.0)
- * - Compiles without any expansion backend.
- * - Lets admins toggle a simple config switch and read "coming soon" text.
- * - In future (paid) versions, wire this to a proper ExpansionRequestManager.
+ * ExpansionRequestAdminGUI (Community v1.0.0)
+ * ------------------------------------------------------------
+ * - Safe, self-contained, and compiles without any expansion backend.
+ * - Lets admins toggle a single config switch: expansions.enabled
+ * - Shows a polished "About" panel. No references to radius or managers.
+ * - Uses only stable APIs (no msg().has()), with sensible fallbacks.
+ *
+ * NOTE: Keep the real AdminGUI class in com.aegisguard.gui.AdminGUI ONLY.
+ * Do NOT duplicate this class name in AdminGUI.java.
  */
 public class ExpansionRequestAdminGUI {
 
@@ -24,63 +32,95 @@ public class ExpansionRequestAdminGUI {
         this.plugin = plugin;
     }
 
-    private String title() {
-        return plugin.msg().has("expansion_admin_title")
-                ? plugin.msg().get("expansion_admin_title")
-                : "§b🛡 AegisGuard — Expansion Admin";
+    /* -----------------------------
+     * Title helper (fallback-safe)
+     * ----------------------------- */
+    private String title(Player player) {
+        // If your messages file later includes "expansion_admin_title", use it.
+        // Otherwise, show a clean default string.
+        String raw = plugin.msg().get(player, "expansion_admin_title");
+        if (raw != null && !raw.contains("Missing:")) {
+            return raw;
+        }
+        return "§b🛡 AegisGuard — Expansion Admin";
     }
 
+    /* -----------------------------
+     * Filler (subtle glass styling)
+     * ----------------------------- */
+    private ItemStack filler() {
+        ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        ItemMeta meta = pane.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(" ");
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
+            pane.setItemMeta(meta);
+        }
+        return pane;
+    }
+
+    /* -----------------------------
+     * Open GUI
+     * ----------------------------- */
     public void open(Player player) {
         if (!player.hasPermission("aegis.admin")) {
             plugin.msg().send(player, "no_perm");
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 27, title());
+        Inventory inv = Bukkit.createInventory(null, 27, title(player));
+
+        // Fill background first for a polished look
+        ItemStack bg = filler();
+        for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, bg);
 
         boolean enabled = plugin.getConfig().getBoolean("expansions.enabled", false);
 
-        // Toggle expansions (config-only for now)
+        // Toggle (left)
         inv.setItem(10, GUIManager.icon(
                 enabled ? Material.AMETHYST_SHARD : Material.GRAY_DYE,
-                enabled ? "§aExpansion Requests: Enabled" : "§7Expansion Requests: Disabled",
+                enabled
+                        ? "§aExpansion Requests: Enabled"
+                        : "§7Expansion Requests: Disabled",
                 List.of(
                         "§7Toggle acceptance of expansion requests.",
                         "§8(Placeholder; full system arrives later)"
                 )
         ));
 
-        // Info block
+        // About (center)
         inv.setItem(13, GUIManager.icon(
                 Material.BOOK,
                 "§bAbout Expansions",
                 List.of(
-                        "§7This menu is a preview.",
-                        "§7The full Expansion system will be",
-                        "§7available in a future premium release.",
-                        "§8You’ll be able to review, approve,",
-                        "§8deny, and auto-calc costs."
+                        "§7This is a preview panel.",
+                        "§7The complete Expansion workflow",
+                        "§7(approve/deny/review/costing) will",
+                        "§7ship in a future premium version."
                 )
         ));
 
-        // Back
+        // Back (right)
         inv.setItem(16, GUIManager.icon(
                 Material.ARROW,
-                "§eBack",
-                List.of("§7Return to Admin Menu")
+                plugin.msg().get(player, "button_back"),
+                plugin.msg().getList(player, "back_lore")
         ));
 
-        // Exit
+        // Exit (bottom-center)
         inv.setItem(22, GUIManager.icon(
                 Material.BARRIER,
-                "§cExit",
-                List.of("§7Close the Codex")
+                plugin.msg().get(player, "button_exit"),
+                plugin.msg().getList(player, "exit_lore")
         ));
 
         player.openInventory(inv);
         plugin.sounds().playMenuOpen(player);
     }
 
+    /* -----------------------------
+     * Handle Clicks
+     * ----------------------------- */
     public void handleClick(Player player, InventoryClickEvent e) {
         e.setCancelled(true);
         if (e.getCurrentItem() == null) return;
@@ -94,10 +134,17 @@ public class ExpansionRequestAdminGUI {
                 open(player); // refresh
             }
             case BOOK -> {
-                player.sendMessage("§b[Expansions] §7This is a preview. The full system arrives later.");
+                // Mirror the "About" lore into chat for clarity
+                List<String> about = List.of(
+                        "§b[Expansions] §7This is a preview.",
+                        "§7The complete Expansion workflow (approve/deny/review/costing)",
+                        "§7will be available in a future premium release."
+                );
+                for (String line : about) player.sendMessage(line);
                 plugin.sounds().playMenuFlip(player);
             }
             case ARROW -> {
+                // Return to Admin menu
                 plugin.gui().admin().open(player);
                 plugin.sounds().playMenuFlip(player);
             }
@@ -105,7 +152,9 @@ public class ExpansionRequestAdminGUI {
                 player.closeInventory();
                 plugin.sounds().playMenuClose(player);
             }
-            default -> { /* ignore */ }
+            default -> {
+                // ignore
+            }
         }
     }
 }
